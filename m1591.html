@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>熊本県南小国町 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>熊本県南小国町</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=1591">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":2138,"Title":"旅館 山みず木","Price":20000,"CategoryName":"宿泊施設","Latitude":33.0780274,"Longitude":131.1567315,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.5,"GoogleReviewCount":1535},{"ProductId":2224,"Title":"黒川温泉 旅館 山河","Price":19000,"CategoryName":"宿泊施設","Latitude":33.0790366,"Longitude":131.1321702,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.5,"GoogleReviewCount":1200},{"ProductId":2558,"Title":"ふもと旅館別邸 こうの湯","Price":25000,"CategoryName":"宿泊施設","Latitude":33.0805071,"Longitude":131.1376104,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.5,"GoogleReviewCount":993},{"ProductId":2139,"Title":"山みず木別邸 深山山荘","Price":30000,"CategoryName":"宿泊施設","Latitude":33.0774923,"Longitude":131.1558539,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.6,"GoogleReviewCount":388},{"ProductId":2312,"Title":"黒川温泉 旅館わかば","Price":20000,"CategoryName":"宿泊施設","Latitude":33.076555,"Longitude":131.1429949,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.5,"GoogleReviewCount":635},{"ProductId":12370,"Title":"黒川荘","Price":32000,"CategoryName":"宿泊施設","Latitude":33.0791657,"Longitude":131.1363597,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.4,"GoogleReviewCount":782},{"ProductId":2536,"Title":"お宿 野の花","Price":34000,"CategoryName":"宿泊施設","Latitude":33.0747222,"Longitude":131.1562805,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.6,"GoogleReviewCount":350},{"ProductId":2419,"Title":"ふもと旅館","Price":20000,"CategoryName":"宿泊施設","Latitude":33.0779808,"Longitude":131.1404831,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.4,"GoogleReviewCount":563},{"ProductId":9735,"Title":"全室離れの温泉宿　久邸","Price":150000,"CategoryName":"宿泊施設","Latitude":33.0727989,"Longitude":131.1270989,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.8,"GoogleReviewCount":77},{"ProductId":7641,"Title":"四季の里　はなむら","Price":30000,"CategoryName":"宿泊施設","Latitude":33.0720982,"Longitude":131.1275925,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.6,"GoogleReviewCount":373},{"ProductId":8078,"Title":"おおぎ荘","Price":16000,"CategoryName":"宿泊施設","Latitude":33.0747964,"Longitude":131.1137081,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.6,"GoogleReviewCount":320},{"ProductId":2137,"Title":"山の宿 新明館","Price":17000,"CategoryName":"宿泊施設","Latitude":33.077504,"Longitude":131.1405534,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.2,"GoogleReviewCount":724},{"ProductId":2627,"Title":"お宿 花風月","Price":35000,"CategoryName":"宿泊施設","Latitude":33.0738083,"Longitude":131.1234342,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.4,"GoogleReviewCount":129},{"ProductId":2550,"Title":"いこい旅館","Price":20000,"CategoryName":"宿泊施設","Latitude":33.0772572,"Longitude":131.1424202,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.3,"GoogleReviewCount":906},{"ProductId":2151,"Title":"湯峽の響き 優彩","Price":18000,"CategoryName":"宿泊施設","Latitude":33.077202,"Longitude":131.14324,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.1,"GoogleReviewCount":956},{"ProductId":14191,"Title":"夫婦露天風呂の宿 藤のや 離れ風","Price":42000,"CategoryName":"宿泊施設","Latitude":33.0686581,"Longitude":131.1448065,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.4,"GoogleReviewCount":45},{"ProductId":2480,"Title":"里の湯和らく","Price":37000,"CategoryName":"宿泊施設","Latitude":33.0757369,"Longitude":131.1598139,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.1,"GoogleReviewCount":214},{"ProductId":3484,"Title":"瀬の本高原ホテル","Price":36000,"CategoryName":"宿泊施設","Latitude":33.0712189,"Longitude":131.1803848,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.2,"GoogleReviewCount":1166},{"ProductId":2602,"Title":"お宿 華坊","Price":20000,"CategoryName":"宿泊施設","Latitude":33.080496,"Longitude":131.1169754,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.1,"GoogleReviewCount":225},{"ProductId":4408,"Title":"自然食レストラン風のもり","Price":2000,"CategoryName":"グルメ","Latitude":33.094987,"Longitude":131.084418,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.5,"GoogleReviewCount":125},{"ProductId":3249,"Title":"夢龍胆","Price":20000,"CategoryName":"宿泊施設","Latitude":33.0765369,"Longitude":131.1442083,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.2,"GoogleReviewCount":701},{"ProductId":2625,"Title":"飛瀬温泉 天河山荘","Price":33000,"CategoryName":"宿泊施設","Latitude":33.0775297,"Longitude":131.1174229,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.5,"GoogleReviewCount":107},{"ProductId":2579,"Title":"離れの宿　花心","Price":28000,"CategoryName":"宿泊施設","Latitude":33.0645925,"Longitude":131.1374364,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.3,"GoogleReviewCount":289},{"ProductId":3250,"Title":"夢龍胆 花泊まり","Price":20000,"CategoryName":"宿泊施設","Latitude":33.0766179,"Longitude":131.1470339,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.4,"GoogleReviewCount":155},{"ProductId":13532,"Title":"旅館やまの湯","Price":10000,"CategoryName":"宿泊施設","Latitude":33.0774011,"Longitude":131.1411886,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.3,"GoogleReviewCount":256},{"ProductId":2648,"Title":"田の原温泉 大朗館","Price":17000,"CategoryName":"宿泊施設","Latitude":33.0818086,"Longitude":131.1252044,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.2,"GoogleReviewCount":242},{"ProductId":11699,"Title":"田舎料理四季の里 比良","Price":2000,"CategoryName":"グルメ","Latitude":33.0912952,"Longitude":131.0789943,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.3,"GoogleReviewCount":55},{"ProductId":11272,"Title":"そば街道吾亦紅","Price":2000,"CategoryName":"グルメ","Latitude":33.0867801,"Longitude":131.0692376,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4,"GoogleReviewCount":1013},{"ProductId":4444,"Title":"吉原ごんべえ村","Price":6000,"CategoryName":"その他","Latitude":33.0626429,"Longitude":131.1280529,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.2,"GoogleReviewCount":147},{"ProductId":10645,"Title":"黒川　森のコテージ","Price":20000,"CategoryName":"宿泊施設","Latitude":33.0705642,"Longitude":131.1527929,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.4,"GoogleReviewCount":174},{"ProductId":8077,"Title":"とうふ 吉祥","Price":2000,"CategoryName":"グルメ","Latitude":33.0783648,"Longitude":131.1418211,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":3.8,"GoogleReviewCount":224},{"ProductId":2122,"Title":"黒川温泉 旅館壱の井","Price":16000,"CategoryName":"宿泊施設","Latitude":33.0795157,"Longitude":131.1440912,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":4.4,"GoogleReviewCount":304},{"ProductId":4631,"Title":"SMO南小国あそび体験（レンタサイクル）","Price":1000,"CategoryName":"その他","Latitude":33.0999932,"Longitude":131.0678749,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":3.8,"GoogleReviewCount":217},{"ProductId":4630,"Title":"SMO南小国あそび体験（ドローン操縦）","Price":9000,"CategoryName":"その他","Latitude":33.0999932,"Longitude":131.0678749,"AreaName":"阿蘇・黒川・杖立","ProductPrefectureName":"熊本県","GoogleReviewRate":3.8,"GoogleReviewCount":217}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

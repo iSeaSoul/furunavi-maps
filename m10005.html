@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>秋田県（県庁） 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>秋田県（県庁）</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=10005">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":14458,"Title":"四季彩り 秋田づくし 湯瀬ホテル","Price":30000,"CategoryName":"宿泊施設","Latitude":40.1227625,"Longitude":140.836331,"AreaName":"大湯・湯瀬・大館","ProductPrefectureName":"秋田県","GoogleReviewRate":4.4,"GoogleReviewCount":1592},{"ProductId":14680,"Title":"角館山荘 侘桜","Price":57000,"CategoryName":"宿泊施設","Latitude":39.6541671,"Longitude":140.554821,"AreaName":"田沢湖","ProductPrefectureName":"秋田県","GoogleReviewRate":4.5,"GoogleReviewCount":192},{"ProductId":13751,"Title":"湯けむりの宿 稲住温泉","Price":35000,"CategoryName":"宿泊施設","Latitude":38.9597808,"Longitude":140.5397079,"AreaName":"横手","ProductPrefectureName":"秋田県","GoogleReviewRate":4.6,"GoogleReviewCount":340},{"ProductId":13750,"Title":"中通温泉　こまちの湯　ドーミーイン秋田","Price":12000,"CategoryName":"宿泊施設","Latitude":39.717593,"Longitude":140.123992,"AreaName":"秋田","ProductPrefectureName":"秋田県","GoogleReviewRate":4.2,"GoogleReviewCount":2583},{"ProductId":13731,"Title":"旅館多郎兵衛","Price":16000,"CategoryName":"宿泊施設","Latitude":39.0069603,"Longitude":140.6613894,"AreaName":"横手","ProductPrefectureName":"秋田県","GoogleReviewRate":4.4,"GoogleReviewCount":507},{"ProductId":13870,"Title":"十和田ホテル","Price":30000,"CategoryName":"宿泊施設","Latitude":40.4399327,"Longitude":140.8431975,"AreaName":"大湯・湯瀬・大館","ProductPrefectureName":"秋田県","GoogleReviewRate":4.4,"GoogleReviewCount":446},{"ProductId":14681,"Title":"源泉・秘湯の宿 ふけの湯","Price":17000,"CategoryName":"宿泊施設","Latitude":39.9773481,"Longitude":140.8180687,"AreaName":"大湯・湯瀬・大館","ProductPrefectureName":"秋田県","GoogleReviewRate":4.3,"GoogleReviewCount":786},{"ProductId":13935,"Title":"リッチモンドホテル秋田駅前","Price":14000,"CategoryName":"宿泊施設","Latitude":39.7161722,"Longitude":140.1246842,"AreaName":"秋田","ProductPrefectureName":"秋田県","GoogleReviewRate":4.2,"GoogleReviewCount":1216},{"ProductId":13734,"Title":"小安峡温泉　湯の宿　元湯くらぶ","Price":15000,"CategoryName":"宿泊施設","Latitude":39.0062817,"Longitude":140.6621689,"AreaName":"横手","ProductPrefectureName":"秋田県","GoogleReviewRate":4.4,"GoogleReviewCount":271},{"ProductId":13755,"Title":"ファームinn緑の風","Price":10000,"CategoryName":"宿泊施設","Latitude":39.6107796,"Longitude":140.4852969,"AreaName":"田沢湖","ProductPrefectureName":"秋田県","GoogleReviewRate":4.8,"GoogleReviewCount":46},{"ProductId":14845,"Title":"山人-oga-","Price":80000,"CategoryName":"宿泊施設","Latitude":39.8604822,"Longitude":139.8088462,"AreaName":"男鹿","ProductPrefectureName":"秋田県","GoogleReviewRate":4.6,"GoogleReviewCount":54},{"ProductId":13779,"Title":"南郷温泉　共林荘","Price":12000,"CategoryName":"宿泊施設","Latitude":39.2530659,"Longitude":140.6713862,"AreaName":"横手","ProductPrefectureName":"秋田県","GoogleReviewRate":4.2,"GoogleReviewCount":418},{"ProductId":13758,"Title":"縄文のふる里　大湯温泉　ホテル鹿角","Price":18000,"CategoryName":"宿泊施設","Latitude":40.296533,"Longitude":140.824652,"AreaName":"大湯・湯瀬・大館","ProductPrefectureName":"秋田県","GoogleReviewRate":4.1,"GoogleReviewCount":1068},{"ProductId":14149,"Title":"十和田プリンスホテル","Price":19000,"CategoryName":"宿泊施設","Latitude":40.453342,"Longitude":140.842697,"AreaName":"大湯・湯瀬・大館","ProductPrefectureName":"秋田県","GoogleReviewRate":4.1,"GoogleReviewCount":863},{"ProductId":13794,"Title":"ホテルプラザアネックス横手","Price":10000,"CategoryName":"宿泊施設","Latitude":39.3090768,"Longitude":140.5613898,"AreaName":"横手","ProductPrefectureName":"秋田県","GoogleReviewRate":4.1,"GoogleReviewCount":811},{"ProductId":13733,"Title":"ホテルパークテラスOGA","Price":23000,"CategoryName":"宿泊施設","Latitude":39.8950759,"Longitude":139.9477986,"AreaName":"男鹿","ProductPrefectureName":"秋田県","GoogleReviewRate":4.4,"GoogleReviewCount":45},{"ProductId":13872,"Title":"鳥海 猿倉温泉 ホテルフォレスタ鳥海","Price":15000,"CategoryName":"宿泊施設","Latitude":39.1739476,"Longitude":140.1177852,"AreaName":"秋田","ProductPrefectureName":"秋田県","GoogleReviewRate":4.1,"GoogleReviewCount":623},{"ProductId":13926,"Title":"大館矢立ハイツ","Price":10000,"CategoryName":"宿泊施設","Latitude":40.4211311,"Longitude":140.6252746,"AreaName":"大湯・湯瀬・大館","ProductPrefectureName":"秋田県","GoogleReviewRate":4.1,"GoogleReviewCount":522},{"ProductId":13754,"Title":"サンネムホテルイン本荘","Price":10000,"CategoryName":"宿泊施設","Latitude":39.3750861,"Longitude":140.0533042,"AreaName":"秋田","ProductPrefectureName":"秋田県","GoogleReviewRate":4.3,"GoogleReviewCount":53},{"ProductId":14515,"Title":"象潟夕日の宿 さんねむ温泉","Price":14000,"CategoryName":"宿泊施設","Latitude":39.2164839,"Longitude":139.8989194,"AreaName":"男鹿","ProductPrefectureName":"秋田県","GoogleReviewRate":4.1,"GoogleReviewCount":403},{"ProductId":15263,"Title":"安楽温泉","Price":16000,"CategoryName":"宿泊施設","Latitude":39.374485,"Longitude":140.044899,"AreaName":"秋田","ProductPrefectureName":"秋田県","GoogleReviewRate":4.1,"GoogleReviewCount":393},{"ProductId":13726,"Title":"町家ホテル角館","Price":10000,"CategoryName":"宿泊施設","Latitude":39.5952076,"Longitude":140.562185,"AreaName":"田沢湖","ProductPrefectureName":"秋田県","GoogleReviewRate":4.1,"GoogleReviewCount":355},{"ProductId":14972,"Title":"大館 雪沢温泉郷 清風荘","Price":10000,"CategoryName":"宿泊施設","Latitude":40.2907774,"Longitude":140.6332283,"AreaName":"大湯・湯瀬・大館","ProductPrefectureName":"秋田県","GoogleReviewRate":4.1,"GoogleReviewCount":354},{"ProductId":13736,"Title":"田沢湖水沢温泉郷セルリアンリゾートＡＯＮＩ","Price":20000,"CategoryName":"宿泊施設","Latitude":39.7652791,"Longitude":140.7531816,"AreaName":"田沢湖","ProductPrefectureName":"秋田県","GoogleReviewRate":4.1,"GoogleReviewCount":248},{"ProductId":13735,"Title":"心に和みが灯る宿 水沢温泉郷 青荷山荘","Price":15000,"CategoryName":"宿泊施設","Latitude":39.7649067,"Longitude":140.7528985,"AreaName":"田沢湖","ProductPrefectureName":"秋田県","GoogleReviewRate":4.1,"GoogleReviewCount":145},{"ProductId":14682,"Title":"源泉かけ流しの宿 岡部荘","Price":15000,"CategoryName":"宿泊施設","Latitude":40.2959201,"Longitude":140.8324511,"AreaName":"大湯・湯瀬・大館","ProductPrefectureName":"秋田県","GoogleReviewRate":4.1,"GoogleReviewCount":143},{"ProductId":13792,"Title":"ホテル フッシュ","Price":13000,"CategoryName":"宿泊施設","Latitude":39.9543111,"Longitude":140.4850061,"AreaName":"大湯・湯瀬・大館","ProductPrefectureName":"秋田県","GoogleReviewRate":4.1,"GoogleReviewCount":93},{"ProductId":14559,"Title":"孫六温泉 六庵","Price":40000,"CategoryName":"宿泊施設","Latitude":39.8042871,"Longitude":140.8046792,"AreaName":"田沢湖","ProductPrefectureName":"秋田県","GoogleReviewRate":3.8,"GoogleReviewCount":390},{"ProductId":14757,"Title":"サンネムホテルイン象潟","Price":7000,"CategoryName":"宿泊施設","Latitude":39.2078031,"Longitude":139.90038,"AreaName":"秋田","ProductPrefectureName":"秋田県","GoogleReviewRate":4.1,"GoogleReviewCount":31},{"ProductId":14995,"Title":"打当温泉 マタギの湯","Price":20000,"CategoryName":"宿泊施設","Latitude":39.9211876,"Longitude":140.5363641,"AreaName":"大湯・湯瀬・大館","ProductPrefectureName":"秋田県","GoogleReviewRate":4,"GoogleReviewCount":564},{"ProductId":13802,"Title":"横手温泉　ホテルプラザ迎賓","Price":18000,"CategoryName":"宿泊施設","Latitude":39.3087779,"Longitude":140.5615045,"AreaName":"横手","ProductPrefectureName":"秋田県","GoogleReviewRate":4,"GoogleReviewCount":453},{"ProductId":14603,"Title":"たしろ温泉ユップラ","Price":8000,"CategoryName":"宿泊施設","Latitude":40.2925846,"Longitude":140.4519155,"AreaName":"大湯・湯瀬・大館","ProductPrefectureName":"秋田県","GoogleReviewRate":3.9,"GoogleReviewCount":351},{"ProductId":13844,"Title":"は～とぽ～と大内ぽぽろっこ","Price":12000,"CategoryName":"宿泊施設","Latitude":39.4431099,"Longitude":140.091232,"AreaName":"秋田","ProductPrefectureName":"秋田県","GoogleReviewRate":3.9,"GoogleReviewCount":497},{"ProductId":14780,"Title":"プラザイーストキャビン","Price":4500,"CategoryName":"宿泊施設","Latitude":39.3099586,"Longitude":140.5613282,"AreaName":"横手","ProductPrefectureName":"秋田県","GoogleReviewRate":3.9,"GoogleReviewCount":653},{"ProductId":13801,"Title":"横手プラザホテル","Price":8000,"CategoryName":"宿泊施設","Latitude":39.3099586,"Longitude":140.5613282,"AreaName":"横手","ProductPrefectureName":"秋田県","GoogleReviewRate":3.9,"GoogleReviewCount":653},{"ProductId":15393,"Title":"クインテッサホテル秋田","Price":5000,"CategoryName":"宿泊施設","Latitude":39.7187048,"Longitude":140.1172538,"AreaName":"秋田","ProductPrefectureName":"秋田県","GoogleReviewRate":3.8,"GoogleReviewCount":181},{"ProductId":13793,"Title":"八森いさりび温泉ハタハタ館","Price":18000,"CategoryName":"宿泊施設","Latitude":40.3863935,"Longitude":139.9871814,"AreaName":"男鹿","ProductPrefectureName":"秋田県","GoogleReviewRate":3.9,"GoogleReviewCount":902},{"ProductId":15240,"Title":"西木温泉ふれあいプラザクリオン","Price":14000,"CategoryName":"宿泊施設","Latitude":39.6614893,"Longitude":140.5664319,"AreaName":"田沢湖","ProductPrefectureName":"秋田県","GoogleReviewRate":3.8,"GoogleReviewCount":369},{"ProductId":13780,"Title":"ANAクラウンプラザホテル秋田","Price":12000,"CategoryName":"宿泊施設","Latitude":39.7171132,"Longitude":140.1266486,"AreaName":"秋田","ProductPrefectureName":"秋田県","GoogleReviewRate":3.9,"GoogleReviewCount":1564},{"ProductId":13871,"Title":"草木ももとせ","Price":30000,"CategoryName":"宿泊施設","Latitude":39.2059355,"Longitude":140.5107615,"AreaName":"横手","ProductPrefectureName":"秋田県","GoogleReviewRate":4.7,"GoogleReviewCount":13},{"ProductId":14408,"Title":"妖精の森コテージラウル","Price":10000,"CategoryName":"宿泊施設","Latitude":40.007979,"Longitude":140.5099735,"AreaName":"大湯・湯瀬・大館","ProductPrefectureName":"秋田県","GoogleReviewRate":4.3,"GoogleReviewCount":49},{"ProductId":15243,"Title":"角館温泉 花葉館","Price":13000,"CategoryName":"宿泊施設","Latitude":39.6210197,"Longitude":140.4768353,"AreaName":"田沢湖","ProductPrefectureName":"秋田県","GoogleReviewRate":3.8,"GoogleReviewCount":646},{"ProductId":13757,"Title":"ホテルエクセルキクスイ","Price":20000,"CategoryName":"宿泊施設","Latitude":39.2906343,"Longitude":139.9725114,"AreaName":"秋田","ProductPrefectureName":"秋田県","GoogleReviewRate":3.7,"GoogleReviewCount":314},{"ProductId":13760,"Title":"グリーンホテル大曲","Price":8000,"CategoryName":"宿泊施設","Latitude":39.4662743,"Longitude":140.4762115,"AreaName":"田沢湖","ProductPrefectureName":"秋田県","GoogleReviewRate":3.7,"GoogleReviewCount":435},{"ProductId":14099,"Title":"YUZAWA GRAND HOTEL","Price":10000,"CategoryName":"宿泊施設","Latitude":39.163043,"Longitude":140.490816,"AreaName":"横手","ProductPrefectureName":"秋田県","GoogleReviewRate":3.7,"GoogleReviewCount":573},{"ProductId":14561,"Title":"ホテルアイリス","Price":10000,"CategoryName":"宿泊施設","Latitude":39.3906894,"Longitude":140.0419922,"AreaName":"秋田","ProductPrefectureName":"秋田県","GoogleReviewRate":3.7,"GoogleReviewCount":611},{"ProductId":13985,"Title":"アルバートホテル秋田","Price":8000,"CategoryName":"宿泊施設","Latitude":39.7154428,"Longitude":140.1151708,"AreaName":"秋田","ProductPrefectureName":"秋田県","GoogleReviewRate":3.7,"GoogleReviewCount":886}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

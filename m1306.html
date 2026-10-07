@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>岡山県倉敷市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>岡山県倉敷市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=1306">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":4228,"Title":"岩盤健康革命","Price":2000,"CategoryName":"その他","Latitude":34.5670802,"Longitude":133.7704446,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.7,"GoogleReviewCount":821},{"ProductId":7997,"Title":"倉敷珈琲館","Price":800,"CategoryName":"グルメ","Latitude":34.595668,"Longitude":133.772049,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.6,"GoogleReviewCount":596},{"ProductId":5368,"Title":"ロイヤルパークホテル倉敷","Price":12000,"CategoryName":"宿泊施設","Latitude":34.6006794,"Longitude":133.769023,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.4,"GoogleReviewCount":814},{"ProductId":13089,"Title":"暮らしの宿てまり「まどろみ」","Price":48000,"CategoryName":"宿泊施設","Latitude":34.5966045,"Longitude":133.7752122,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":5,"GoogleReviewCount":31},{"ProductId":9108,"Title":"OKAYAMA　GLAMPING　SORANIA","Price":15000,"CategoryName":"宿泊施設","Latitude":34.5865739,"Longitude":133.7850154,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.7,"GoogleReviewCount":173},{"ProductId":7965,"Title":"天然温泉 阿智の湯 ドーミーイン倉敷","Price":12000,"CategoryName":"宿泊施設","Latitude":34.5968083,"Longitude":133.7689637,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.2,"GoogleReviewCount":1815},{"ProductId":4054,"Title":"atelier&gallery 土と月","Price":5000,"CategoryName":"その他","Latitude":34.5948085,"Longitude":133.7718737,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.8,"GoogleReviewCount":139},{"ProductId":4542,"Title":"WASHU BLUE RESORT 風籠","Price":22000,"CategoryName":"宿泊施設","Latitude":34.4441585,"Longitude":133.7994003,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.2,"GoogleReviewCount":828},{"ProductId":13491,"Title":"然味-sami-","Price":13000,"CategoryName":"グルメ","Latitude":34.5967623,"Longitude":133.7720388,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.7,"GoogleReviewCount":66},{"ProductId":3609,"Title":"庭園旅館　備後屋","Price":35000,"CategoryName":"宿泊施設","Latitude":34.5403619,"Longitude":133.6681366,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.4,"GoogleReviewCount":136},{"ProductId":4306,"Title":"ベティスミス恵比寿工房","Price":16500,"CategoryName":"その他","Latitude":35.6511153,"Longitude":139.7073456,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.6,"GoogleReviewCount":166},{"ProductId":4430,"Title":"たびのホテル倉敷水島","Price":15000,"CategoryName":"宿泊施設","Latitude":34.5331735,"Longitude":133.7399565,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.2,"GoogleReviewCount":430},{"ProductId":5486,"Title":"せとうち児島ホテル","Price":22000,"CategoryName":"宿泊施設","Latitude":34.4448296,"Longitude":133.8013456,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.1,"GoogleReviewCount":1078},{"ProductId":4385,"Title":"ベッセルホテル倉敷","Price":4000,"CategoryName":"宿泊施設","Latitude":34.6289785,"Longitude":133.8017308,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.1,"GoogleReviewCount":748},{"ProductId":13841,"Title":"ザ・ワンファイブガーデン倉敷","Price":6000,"CategoryName":"宿泊施設","Latitude":34.5963374,"Longitude":133.7683115,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.1,"GoogleReviewCount":600},{"ProductId":6417,"Title":"（日帰り温泉）倉敷由加温泉ホテル山桃花","Price":1900,"CategoryName":"その他","Latitude":34.5019646,"Longitude":133.8488804,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.1,"GoogleReviewCount":563},{"ProductId":6172,"Title":"倉敷由加温泉ホテル山桃花","Price":22000,"CategoryName":"宿泊施設","Latitude":34.5019646,"Longitude":133.8488804,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.1,"GoogleReviewCount":563},{"ProductId":4157,"Title":"桃太郎のからくり博物館","Price":600,"CategoryName":"その他","Latitude":34.5948386,"Longitude":133.7722494,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.2,"GoogleReviewCount":663},{"ProductId":8491,"Title":"居食家 寿","Price":7000,"CategoryName":"グルメ","Latitude":34.600074,"Longitude":133.7695829,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.1,"GoogleReviewCount":208},{"ProductId":4037,"Title":"candle fairy","Price":2000,"CategoryName":"その他","Latitude":34.5971243,"Longitude":133.7674508,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.8,"GoogleReviewCount":29},{"ProductId":12965,"Title":"暮らしの宿てまり「ゆきかい」","Price":29000,"CategoryName":"宿泊施設","Latitude":34.5966857,"Longitude":133.7720544,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.9,"GoogleReviewCount":57},{"ProductId":4087,"Title":"Glass Ten Studio","Price":4000,"CategoryName":"その他","Latitude":34.5220368,"Longitude":133.7597447,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.5,"GoogleReviewCount":30},{"ProductId":11543,"Title":"MOMOKO TERRACE(くらしき桃子 倉敷市民会館店)","Price":2000,"CategoryName":"グルメ","Latitude":34.595145,"Longitude":133.7764334,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":3.9,"GoogleReviewCount":144},{"ProductId":4142,"Title":"倉敷光作所","Price":1500,"CategoryName":"その他","Latitude":34.5967968,"Longitude":133.7742118,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.6,"GoogleReviewCount":12},{"ProductId":4304,"Title":"ベティスミス","Price":8800,"CategoryName":"その他","Latitude":34.476852,"Longitude":133.822924,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.2,"GoogleReviewCount":86},{"ProductId":4128,"Title":"Studio Yamato","Price":4500,"CategoryName":"その他","Latitude":34.5589384,"Longitude":133.8154524,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":5,"GoogleReviewCount":2},{"ProductId":4149,"Title":"くらし器 てぬぐい Gocha","Price":2200,"CategoryName":"その他","Latitude":34.5963952,"Longitude":133.7728153,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.2,"GoogleReviewCount":48},{"ProductId":11544,"Title":"くらしき桃子 倉敷中央店","Price":2000,"CategoryName":"グルメ","Latitude":34.5967738,"Longitude":133.7699247,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":3.9,"GoogleReviewCount":442},{"ProductId":4492,"Title":"い草屋 花莚","Price":2000,"CategoryName":"その他","Latitude":34.5948891,"Longitude":133.7724941,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":5,"GoogleReviewCount":1},{"ProductId":12966,"Title":"暮らしの宿てまり「おいとま」","Price":48000,"CategoryName":"宿泊施設","Latitude":34.5942858,"Longitude":133.7740092,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":4.7,"GoogleReviewCount":37},{"ProductId":11547,"Title":"くらしき桃子 倉敷本店","Price":2500,"CategoryName":"グルメ","Latitude":34.5956031,"Longitude":133.7720672,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":3.9,"GoogleReviewCount":610},{"ProductId":9760,"Title":"鷲羽グランドホテル　備前屋甲子","Price":14000,"CategoryName":"宿泊施設","Latitude":34.4397817,"Longitude":133.7818533,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":3.9,"GoogleReviewCount":845},{"ProductId":4163,"Title":"ガラス工房Minerva","Price":22000,"CategoryName":"その他","Latitude":34.6064967,"Longitude":133.7735649,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":3.3,"GoogleReviewCount":3},{"ProductId":10617,"Title":"DENIM HOUSE BON","Price":30000,"CategoryName":"宿泊施設","Latitude":34.4747938,"Longitude":133.8054003,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":5,"GoogleReviewCount":4},{"ProductId":15108,"Title":"かしわ屋 こばやし","Price":10000,"CategoryName":"グルメ","Latitude":34.599951,"Longitude":133.7666584,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":3.7,"GoogleReviewCount":270},{"ProductId":11545,"Title":"くらしき桃子 総本店","Price":2500,"CategoryName":"グルメ","Latitude":34.5963659,"Longitude":133.7714168,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":3.8,"GoogleReviewCount":620},{"ProductId":7923,"Title":"倉敷シーサイドホテル","Price":12000,"CategoryName":"宿泊施設","Latitude":34.4762585,"Longitude":133.7597373,"AreaName":"倉敷・総社・笠岡","ProductPrefectureName":"岡山県","GoogleReviewRate":3.8,"GoogleReviewCount":757}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>北海道千歳市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>北海道千歳市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=24">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":4121,"Title":"サケのふるさと千歳水族館","Price":800,"CategoryName":"その他","Latitude":42.8327899,"Longitude":141.6591892,"AreaName":"洞爺湖・登別・苫小牧・千歳","ProductPrefectureName":"北海道","GoogleReviewRate":4.4,"GoogleReviewCount":3682},{"ProductId":3142,"Title":"ポルトム インターナショナル 北海道","Price":17000,"CategoryName":"宿泊施設","Latitude":42.7844873,"Longitude":141.6766268,"AreaName":"洞爺湖・登別・苫小牧・千歳","ProductPrefectureName":"北海道","GoogleReviewRate":4.7,"GoogleReviewCount":510},{"ProductId":3118,"Title":"丸駒温泉旅館","Price":20000,"CategoryName":"宿泊施設","Latitude":42.7801482,"Longitude":141.3103124,"AreaName":"洞爺湖・登別・苫小牧・千歳","ProductPrefectureName":"北海道","GoogleReviewRate":4.2,"GoogleReviewCount":2926},{"ProductId":3120,"Title":"支笏湖　レイクサイドヴィラ翠明閣","Price":36000,"CategoryName":"宿泊施設","Latitude":42.7734953,"Longitude":141.4022271,"AreaName":"洞爺湖・登別・苫小牧・千歳","ProductPrefectureName":"北海道","GoogleReviewRate":4.5,"GoogleReviewCount":199},{"ProductId":12871,"Title":"Pizzeria da Haru","Price":2900,"CategoryName":"グルメ","Latitude":42.8452771,"Longitude":141.6410845,"AreaName":"洞爺湖・登別・苫小牧・千歳","ProductPrefectureName":"北海道","GoogleReviewRate":4.7,"GoogleReviewCount":236},{"ProductId":12772,"Title":"花茶","Price":1500,"CategoryName":"グルメ","Latitude":42.9184464,"Longitude":141.7256555,"AreaName":"洞爺湖・登別・苫小牧・千歳","ProductPrefectureName":"北海道","GoogleReviewRate":4.3,"GoogleReviewCount":1062},{"ProductId":8235,"Title":"北海道牛乳カステラ","Price":500,"CategoryName":"グルメ","Latitude":42.7874639,"Longitude":141.6798612,"AreaName":"洞爺湖・登別・苫小牧・千歳","ProductPrefectureName":"北海道","GoogleReviewRate":4.4,"GoogleReviewCount":441},{"ProductId":8452,"Title":"NAMAKEMONO CAFE","Price":1000,"CategoryName":"グルメ","Latitude":42.8256079,"Longitude":141.6461567,"AreaName":"洞爺湖・登別・苫小牧・千歳","ProductPrefectureName":"北海道","GoogleReviewRate":4.5,"GoogleReviewCount":174},{"ProductId":8012,"Title":"bistro RUELLE ビストロリュエル","Price":8000,"CategoryName":"グルメ","Latitude":42.8364088,"Longitude":141.6281174,"AreaName":"洞爺湖・登別・苫小牧・千歳","ProductPrefectureName":"北海道","GoogleReviewRate":4.7,"GoogleReviewCount":61},{"ProductId":8100,"Title":"Restaurant AKIOKA pere et fils","Price":15000,"CategoryName":"グルメ","Latitude":42.8260758,"Longitude":141.647073,"AreaName":"洞爺湖・登別・苫小牧・千歳","ProductPrefectureName":"北海道","GoogleReviewRate":4.4,"GoogleReviewCount":184},{"ProductId":3166,"Title":"エアターミナルホテル","Price":11000,"CategoryName":"宿泊施設","Latitude":42.785673,"Longitude":141.6807017,"AreaName":"洞爺湖・登別・苫小牧・千歳","ProductPrefectureName":"北海道","GoogleReviewRate":4.1,"GoogleReviewCount":2322},{"ProductId":9310,"Title":"Milkybell","Price":1000,"CategoryName":"グルメ","Latitude":42.854881,"Longitude":141.669629,"AreaName":"洞爺湖・登別・苫小牧・千歳","ProductPrefectureName":"北海道","GoogleReviewRate":4.2,"GoogleReviewCount":463},{"ProductId":12761,"Title":"Hamburg Restaurant Aruhiko -ハンバーグレストラン アルヒコ-","Price":3000,"CategoryName":"グルメ","Latitude":42.8454113,"Longitude":141.6411443,"AreaName":"洞爺湖・登別・苫小牧・千歳","ProductPrefectureName":"北海道","GoogleReviewRate":4.2,"GoogleReviewCount":220},{"ProductId":10571,"Title":"PASTARANTE パスタランテ","Price":2000,"CategoryName":"グルメ","Latitude":42.832955,"Longitude":141.6684737,"AreaName":"洞爺湖・登別・苫小牧・千歳","ProductPrefectureName":"北海道","GoogleReviewRate":4.2,"GoogleReviewCount":133},{"ProductId":10103,"Title":"ホテルクラッセステイ千歳","Price":10000,"CategoryName":"宿泊施設","Latitude":42.8242812,"Longitude":141.6476496,"AreaName":"洞爺湖・登別・苫小牧・千歳","ProductPrefectureName":"北海道","GoogleReviewRate":4,"GoogleReviewCount":279},{"ProductId":4248,"Title":"北都交通株式会社　千歳支店","Price":20000,"CategoryName":"その他","Latitude":42.8378352,"Longitude":141.6235679,"AreaName":"洞爺湖・登別・苫小牧・千歳","ProductPrefectureName":"北海道","GoogleReviewRate":0,"GoogleReviewCount":0},{"ProductId":4241,"Title":"千歳カントリークラブ","Price":11000,"CategoryName":"その他","Latitude":42.8734443,"Longitude":141.7714735,"AreaName":"洞爺湖・登別・苫小牧・千歳","ProductPrefectureName":"北海道","GoogleReviewRate":3.8,"GoogleReviewCount":243},{"ProductId":10632,"Title":"駒そば亭","Price":1200,"CategoryName":"グルメ","Latitude":42.8136111,"Longitude":141.6788889,"AreaName":"洞爺湖・登別・苫小牧・千歳","ProductPrefectureName":"北海道","GoogleReviewRate":3.6,"GoogleReviewCount":703},{"ProductId":11778,"Title":"札幌飛燕","Price":1200,"CategoryName":"グルメ","Latitude":42.7879991,"Longitude":141.6802829,"AreaName":"洞爺湖・登別・苫小牧・千歳","ProductPrefectureName":"北海道","GoogleReviewRate":3.2,"GoogleReviewCount":815}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

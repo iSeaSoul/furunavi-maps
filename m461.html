@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>栃木県那須塩原市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>栃木県那須塩原市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=461">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":4089,"Title":"ジャイロライドパーク","Price":5800,"CategoryName":"その他","Latitude":37.0429803,"Longitude":139.9606078,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.7,"GoogleReviewCount":387},{"ProductId":2559,"Title":"温泉和膳旅館 休庵いい田","Price":75000,"CategoryName":"宿泊施設","Latitude":36.9654525,"Longitude":139.9238529,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.7,"GoogleReviewCount":38},{"ProductId":2548,"Title":"板室温泉 大黒屋","Price":24000,"CategoryName":"宿泊施設","Latitude":37.0664021,"Longitude":139.923243,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.5,"GoogleReviewCount":308},{"ProductId":2582,"Title":"湯ったりの宿 松楓楼松屋","Price":39000,"CategoryName":"宿泊施設","Latitude":36.9633454,"Longitude":139.8388743,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.4,"GoogleReviewCount":444},{"ProductId":8143,"Title":"塩の湯温泉 蓮月","Price":47000,"CategoryName":"宿泊施設","Latitude":36.9564687,"Longitude":139.8296742,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.3,"GoogleReviewCount":766},{"ProductId":6771,"Title":"美食工房ラトリエ・ムッシュー","Price":10000,"CategoryName":"グルメ","Latitude":36.9883571,"Longitude":139.9658381,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.6,"GoogleReviewCount":98},{"ProductId":2589,"Title":"赤沢温泉旅館","Price":12000,"CategoryName":"宿泊施設","Latitude":36.9784406,"Longitude":139.8119151,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.3,"GoogleReviewCount":327},{"ProductId":6689,"Title":"ぴっこらるーじゅ","Price":1500,"CategoryName":"グルメ","Latitude":36.8992625,"Longitude":140.0067954,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.3,"GoogleReviewCount":271},{"ProductId":11041,"Title":"旬味酒彩れん","Price":7000,"CategoryName":"グルメ","Latitude":36.9541369,"Longitude":140.0346514,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.3,"GoogleReviewCount":236},{"ProductId":6496,"Title":"CAFÉ NOVIRO","Price":1500,"CategoryName":"グルメ","Latitude":37.0024175,"Longitude":139.9803076,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.4,"GoogleReviewCount":125},{"ProductId":4402,"Title":"湯守 田中屋","Price":26000,"CategoryName":"宿泊施設","Latitude":36.966006,"Longitude":139.860715,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.2,"GoogleReviewCount":373},{"ProductId":6394,"Title":"仏式茶寮　カミノ","Price":1500,"CategoryName":"グルメ","Latitude":37.0001585,"Longitude":139.9834389,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.3,"GoogleReviewCount":145},{"ProductId":6561,"Title":"そば処やしお","Price":2000,"CategoryName":"グルメ","Latitude":37.0639467,"Longitude":139.9242458,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.2,"GoogleReviewCount":273},{"ProductId":6570,"Title":"森の中のお野菜レストラン　クオーレデルソル","Price":6000,"CategoryName":"グルメ","Latitude":36.946424,"Longitude":139.977139,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.3,"GoogleReviewCount":107},{"ProductId":4903,"Title":"わんわんパラダイス プレミア 塩原（旧：亀の井ホテル 塩原 ワンちゃんの宿）","Price":17000,"CategoryName":"宿泊施設","Latitude":36.9657506,"Longitude":139.8328659,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.1,"GoogleReviewCount":653},{"ProductId":14473,"Title":"シェレンバウム　黒磯店","Price":1200,"CategoryName":"グルメ","Latitude":36.9413935,"Longitude":140.0217595,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.1,"GoogleReviewCount":519},{"ProductId":14034,"Title":"竹清食堂","Price":1500,"CategoryName":"グルメ","Latitude":36.8831618,"Longitude":139.9832246,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.1,"GoogleReviewCount":444},{"ProductId":8582,"Title":"秘湯にごり湯の宿 渓雲閣","Price":17000,"CategoryName":"宿泊施設","Latitude":36.955447,"Longitude":139.779157,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.1,"GoogleReviewCount":435},{"ProductId":6393,"Title":"季節料理　いとう家","Price":5000,"CategoryName":"グルメ","Latitude":36.8852528,"Longitude":139.9834448,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.1,"GoogleReviewCount":221},{"ProductId":4090,"Title":"Mimoza Retreat NASU(ミモザ・リトリート那須)","Price":33000,"CategoryName":"宿泊施設","Latitude":37.0428857,"Longitude":139.9603458,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.7,"GoogleReviewCount":135},{"ProductId":10946,"Title":"柏屋旅館","Price":15000,"CategoryName":"宿泊施設","Latitude":36.9547312,"Longitude":139.8289363,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.1,"GoogleReviewCount":190},{"ProductId":6337,"Title":"天ぷら割烹 天甚","Price":8000,"CategoryName":"グルメ","Latitude":36.8863627,"Longitude":139.9739345,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.2,"GoogleReviewCount":33},{"ProductId":6335,"Title":"なす野","Price":5000,"CategoryName":"グルメ","Latitude":36.9730095,"Longitude":140.0600798,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.1,"GoogleReviewCount":111},{"ProductId":11567,"Title":"人・季・想をつむぐ宿 彩つむぎ","Price":25000,"CategoryName":"宿泊施設","Latitude":36.9672301,"Longitude":139.8317689,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4,"GoogleReviewCount":134},{"ProductId":7043,"Title":"チーズガーデン 塩原珈琲","Price":2500,"CategoryName":"グルメ","Latitude":36.9367926,"Longitude":139.9130882,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4,"GoogleReviewCount":1023},{"ProductId":6839,"Title":"カフェレストラン 洋燈","Price":1500,"CategoryName":"グルメ","Latitude":36.9718262,"Longitude":139.8198612,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4,"GoogleReviewCount":143},{"ProductId":6684,"Title":"秘湯の宿　元泉館","Price":18000,"CategoryName":"宿泊施設","Latitude":36.9676838,"Longitude":139.7580189,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4,"GoogleReviewCount":737},{"ProductId":4552,"Title":"奥塩原高原ホテル","Price":15000,"CategoryName":"宿泊施設","Latitude":36.9569393,"Longitude":139.7790456,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4,"GoogleReviewCount":471},{"ProductId":2568,"Title":"上会津屋","Price":15000,"CategoryName":"宿泊施設","Latitude":36.971458,"Longitude":139.8197378,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4,"GoogleReviewCount":171},{"ProductId":4112,"Title":"レザークラフトAlmaReir","Price":7000,"CategoryName":"その他","Latitude":36.9977364,"Longitude":139.9842882,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.8,"GoogleReviewCount":13},{"ProductId":14478,"Title":"シェレンバウム　西那須野店","Price":1200,"CategoryName":"グルメ","Latitude":36.8823168,"Longitude":139.9979127,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":3.9,"GoogleReviewCount":354},{"ProductId":14705,"Title":"寿楽4号バイパス店","Price":1200,"CategoryName":"グルメ","Latitude":36.9710806,"Longitude":140.068609,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":3.8,"GoogleReviewCount":123},{"ProductId":3415,"Title":"奥那須・大正村　幸乃湯温泉","Price":10000,"CategoryName":"宿泊施設","Latitude":37.0550182,"Longitude":139.9293792,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":3.9,"GoogleReviewCount":809},{"ProductId":15258,"Title":"ハンターマウンテン塩原キャンピングパーク","Price":15000,"CategoryName":"その他","Latitude":36.9381364,"Longitude":139.7539208,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4,"GoogleReviewCount":3911},{"ProductId":10623,"Title":"セグロラ那須サロン","Price":7000,"CategoryName":"その他","Latitude":36.8850949,"Longitude":139.9990979,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":0,"GoogleReviewCount":0},{"ProductId":2111,"Title":"大鷹の湯","Price":20000,"CategoryName":"宿泊施設","Latitude":36.9158575,"Longitude":139.9704627,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.3,"GoogleReviewCount":480},{"ProductId":2202,"Title":"割烹旅館 湯の花荘","Price":35000,"CategoryName":"宿泊施設","Latitude":36.9667564,"Longitude":139.8267069,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":4.4,"GoogleReviewCount":267},{"ProductId":3245,"Title":"ゆとりろ那須塩原","Price":18000,"CategoryName":"宿泊施設","Latitude":36.975728,"Longitude":139.813283,"AreaName":"那須・塩原","ProductPrefectureName":"栃木県","GoogleReviewRate":3.7,"GoogleReviewCount":1051}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

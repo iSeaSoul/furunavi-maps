@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>北海道小樽市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>北海道小樽市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=3">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":14595,"Title":"おたる宏楽園","Price":42000,"CategoryName":"宿泊施設","Latitude":43.1651843,"Longitude":141.0501097,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.6,"GoogleReviewCount":1054},{"ProductId":12259,"Title":"料亭湯宿　銀鱗荘","Price":60000,"CategoryName":"宿泊施設","Latitude":43.1806664,"Longitude":141.0350088,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.5,"GoogleReviewCount":309},{"ProductId":7966,"Title":"天然温泉 灯の湯 ドーミーインPREMIUM小樽","Price":16000,"CategoryName":"宿泊施設","Latitude":43.198419,"Longitude":140.994721,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.2,"GoogleReviewCount":3773},{"ProductId":7163,"Title":"CafeBar 石と鉄 STONE and IRON","Price":2000,"CategoryName":"グルメ","Latitude":43.2001729,"Longitude":140.999931,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.7,"GoogleReviewCount":281},{"ProductId":7551,"Title":"UNWIND HOTEL & BAR 小樽","Price":25000,"CategoryName":"宿泊施設","Latitude":43.1975424,"Longitude":141.0009131,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.5,"GoogleReviewCount":524},{"ProductId":6960,"Title":"おたる政寿司 本店","Price":10000,"CategoryName":"グルメ","Latitude":43.1942733,"Longitude":141.000114,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.2,"GoogleReviewCount":2920},{"ProductId":6047,"Title":"グリッズプレミアムホテル小樽","Price":7000,"CategoryName":"宿泊施設","Latitude":43.1957772,"Longitude":140.9989283,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.3,"GoogleReviewCount":1130},{"ProductId":15304,"Title":"小樽海鮮 真海","Price":8000,"CategoryName":"グルメ","Latitude":43.1949439,"Longitude":141.0012874,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.7,"GoogleReviewCount":181},{"ProductId":7400,"Title":"オーセントホテル小樽","Price":19000,"CategoryName":"宿泊施設","Latitude":43.1958546,"Longitude":140.9975742,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.2,"GoogleReviewCount":1857},{"ProductId":7937,"Title":"ホテルノイシュロス小樽","Price":22000,"CategoryName":"宿泊施設","Latitude":43.2376474,"Longitude":141.0073576,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.2,"GoogleReviewCount":1268},{"ProductId":6726,"Title":"おたる蝦夷屋","Price":2500,"CategoryName":"グルメ","Latitude":43.1950186,"Longitude":141.0046839,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.3,"GoogleReviewCount":539},{"ProductId":6059,"Title":"スープカリー クフウ","Price":1200,"CategoryName":"グルメ","Latitude":43.131366,"Longitude":141.1918187,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.4,"GoogleReviewCount":259},{"ProductId":7167,"Title":"くいもん酒場　わはは","Price":4000,"CategoryName":"グルメ","Latitude":43.1942641,"Longitude":140.9980239,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.5,"GoogleReviewCount":126},{"ProductId":7154,"Title":"石と鉄 STONE and IRON","Price":22000,"CategoryName":"宿泊施設","Latitude":43.2001729,"Longitude":140.999931,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.7,"GoogleReviewCount":281},{"ProductId":7160,"Title":"炭火焼肉　大徳","Price":4000,"CategoryName":"グルメ","Latitude":43.1898118,"Longitude":141.002118,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.4,"GoogleReviewCount":138},{"ProductId":6236,"Title":"ニッカバー　リタ","Price":3000,"CategoryName":"グルメ","Latitude":43.1972851,"Longitude":141.0028428,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.4,"GoogleReviewCount":109},{"ProductId":15301,"Title":"小樽ジンギスカン倶楽部 北とうがらし 本店","Price":5000,"CategoryName":"グルメ","Latitude":43.1921886,"Longitude":141.000503,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.2,"GoogleReviewCount":435},{"ProductId":13525,"Title":"すし処浜谷","Price":8000,"CategoryName":"グルメ","Latitude":43.197794,"Longitude":140.995731,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.2,"GoogleReviewCount":312},{"ProductId":6060,"Title":"ワインとチーズと有機野菜のお店　雪あかり ","Price":5000,"CategoryName":"グルメ","Latitude":43.1980156,"Longitude":140.9982944,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.5,"GoogleReviewCount":42},{"ProductId":6023,"Title":"いち乃家","Price":2000,"CategoryName":"グルメ","Latitude":43.2085734,"Longitude":140.9999742,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.3,"GoogleReviewCount":112},{"ProductId":12151,"Title":"小樽バイン","Price":2500,"CategoryName":"グルメ","Latitude":43.196785,"Longitude":141.000772,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.1,"GoogleReviewCount":778},{"ProductId":7161,"Title":"小樽　たるてじ","Price":3000,"CategoryName":"グルメ","Latitude":43.192066,"Longitude":141.0002928,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.3,"GoogleReviewCount":39},{"ProductId":12145,"Title":"山郷　宇　Villa SORA","Price":150000,"CategoryName":"宿泊施設","Latitude":43.1467135,"Longitude":141.1349893,"AreaName":"旭川・層雲峡","ProductPrefectureName":"北海道","GoogleReviewRate":4.9,"GoogleReviewCount":84},{"ProductId":12144,"Title":"山郷　地　Villa SIR","Price":150000,"CategoryName":"宿泊施設","Latitude":43.1467135,"Longitude":141.1349893,"AreaName":"旭川・層雲峡","ProductPrefectureName":"北海道","GoogleReviewRate":4.9,"GoogleReviewCount":84},{"ProductId":12143,"Title":"山郷　和　Villa NAGO","Price":150000,"CategoryName":"宿泊施設","Latitude":43.1467135,"Longitude":141.1349893,"AreaName":"旭川・層雲峡","ProductPrefectureName":"北海道","GoogleReviewRate":4.9,"GoogleReviewCount":84},{"ProductId":7999,"Title":"山郷 春 Villa -SHUN-","Price":100000,"CategoryName":"宿泊施設","Latitude":43.1466452,"Longitude":141.1356315,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.9,"GoogleReviewCount":84},{"ProductId":7998,"Title":"山郷 香 Villa -KAORU-","Price":92000,"CategoryName":"宿泊施設","Latitude":43.1465922,"Longitude":141.1355806,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.9,"GoogleReviewCount":84},{"ProductId":15303,"Title":"炉ばた屋 鶴吉 本店","Price":5000,"CategoryName":"グルメ","Latitude":43.193056,"Longitude":140.999306,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4,"GoogleReviewCount":254},{"ProductId":15302,"Title":"炉ばた屋 鶴吉 出抜小路店","Price":5000,"CategoryName":"グルメ","Latitude":43.1973392,"Longitude":141.0026583,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":0,"GoogleReviewCount":0},{"ProductId":7122,"Title":"お食事処 四季采","Price":2000,"CategoryName":"グルメ","Latitude":43.1443654,"Longitude":141.170768,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4,"GoogleReviewCount":186},{"ProductId":6487,"Title":"らく天","Price":5000,"CategoryName":"グルメ","Latitude":43.196906,"Longitude":140.997104,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4,"GoogleReviewCount":333},{"ProductId":6482,"Title":"小樽中国料理レストラン好","Price":2000,"CategoryName":"グルメ","Latitude":43.197936,"Longitude":141.002319,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4,"GoogleReviewCount":316},{"ProductId":6064,"Title":"小樽あんかけ処　とろり庵","Price":1000,"CategoryName":"グルメ","Latitude":43.1702992,"Longitude":141.0330799,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4,"GoogleReviewCount":851},{"ProductId":7162,"Title":"Diningbarまんげつ","Price":4000,"CategoryName":"グルメ","Latitude":43.192066,"Longitude":141.0002928,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":3.9,"GoogleReviewCount":106},{"ProductId":15053,"Title":"寿司和食しかま","Price":8000,"CategoryName":"グルメ","Latitude":43.1932929,"Longitude":140.9999819,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":3.9,"GoogleReviewCount":367},{"ProductId":9152,"Title":"ウィンケルビレッジ","Price":15000,"CategoryName":"宿泊施設","Latitude":43.1459934,"Longitude":141.0393522,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.3,"GoogleReviewCount":196},{"ProductId":7819,"Title":"ふじ鮨　小樽店","Price":5000,"CategoryName":"グルメ","Latitude":43.194685,"Longitude":141.0059708,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":3.9,"GoogleReviewCount":680},{"ProductId":15300,"Title":"小樽ジンギスカン倶楽部 北とうがらし 出抜小路店","Price":3000,"CategoryName":"グルメ","Latitude":43.1973527,"Longitude":141.0031534,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":3.8,"GoogleReviewCount":248},{"ProductId":9211,"Title":"朝里川温泉ホテル","Price":14000,"CategoryName":"宿泊施設","Latitude":43.1418645,"Longitude":141.0404068,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":3.8,"GoogleReviewCount":390},{"ProductId":6027,"Title":"シロクマ食堂","Price":5000,"CategoryName":"グルメ","Latitude":43.2063864,"Longitude":140.9989163,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":3.8,"GoogleReviewCount":432},{"ProductId":6535,"Title":"日本橋","Price":4000,"CategoryName":"グルメ","Latitude":43.1944699,"Longitude":140.9994462,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":3.8,"GoogleReviewCount":569},{"ProductId":6061,"Title":"The Apartment Hotels KOU","Price":20000,"CategoryName":"宿泊施設","Latitude":43.1923627,"Longitude":140.9988544,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":4.3,"GoogleReviewCount":6},{"ProductId":6961,"Title":"おたる政寿司 ぜん庵","Price":8000,"CategoryName":"グルメ","Latitude":43.1976586,"Longitude":141.0025623,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":3.8,"GoogleReviewCount":939},{"ProductId":6468,"Title":"北海あぶりやき運河倉庫","Price":5000,"CategoryName":"グルメ","Latitude":43.1984683,"Longitude":141.0030984,"AreaName":"小樽・キロロ","ProductPrefectureName":"北海道","GoogleReviewRate":3.3,"GoogleReviewCount":766}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>徳島県鳴門市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>徳島県鳴門市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=1375">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":5383,"Title":"グランドエクシブ鳴門","Price":27000,"CategoryName":"宿泊施設","Latitude":34.203011,"Longitude":134.470356,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4.4,"GoogleReviewCount":1951},{"ProductId":5941,"Title":"グランドエクシブ鳴門　サンクチュアリ・ヴィラ ドゥーエ","Price":36000,"CategoryName":"宿泊施設","Latitude":34.1972632,"Longitude":134.4640059,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4.7,"GoogleReviewCount":150},{"ProductId":11043,"Title":"リストランテフィッシュボーン（リゾートホテル モアナコースト内）","Price":10000,"CategoryName":"グルメ","Latitude":34.2012057,"Longitude":134.6239784,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4.4,"GoogleReviewCount":338},{"ProductId":6862,"Title":"ホテルリッジ","Price":65000,"CategoryName":"宿泊施設","Latitude":34.2427294,"Longitude":134.6120754,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4.5,"GoogleReviewCount":183},{"ProductId":4523,"Title":"カフェレストラン　ホレタテキッチン（道の駅くるくる鳴門）","Price":1000,"CategoryName":"グルメ","Latitude":34.1582346,"Longitude":134.5799114,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4.1,"GoogleReviewCount":4000},{"ProductId":5940,"Title":"グランドエクシブ鳴門・サンクチュアリ・ヴィラ","Price":36000,"CategoryName":"宿泊施設","Latitude":34.1974044,"Longitude":134.4658409,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4.4,"GoogleReviewCount":248},{"ProductId":5788,"Title":"アオアヲ ナルト リゾート","Price":26000,"CategoryName":"宿泊施設","Latitude":34.2202309,"Longitude":134.6330987,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4.1,"GoogleReviewCount":3216},{"ProductId":6526,"Title":"gelateria Spuntino","Price":500,"CategoryName":"グルメ","Latitude":34.1630211,"Longitude":134.5629056,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4.4,"GoogleReviewCount":187},{"ProductId":7044,"Title":"フランス料理　フォーシーズン（アオアヲ ナルト リゾート内）","Price":15000,"CategoryName":"グルメ","Latitude":34.2204373,"Longitude":134.6334832,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4.5,"GoogleReviewCount":116},{"ProductId":3376,"Title":"グランドエクシブ鳴門 ザ・ロッジ","Price":15000,"CategoryName":"宿泊施設","Latitude":34.1968123,"Longitude":134.468244,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4.2,"GoogleReviewCount":575},{"ProductId":6802,"Title":"料理・旅館 大鳥居苑","Price":2000,"CategoryName":"グルメ","Latitude":34.159699,"Longitude":134.501842,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4.4,"GoogleReviewCount":111},{"ProductId":4342,"Title":"梅里窯","Price":2000,"CategoryName":"その他","Latitude":34.1618688,"Longitude":134.5400119,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4.7,"GoogleReviewCount":51},{"ProductId":6531,"Title":"旅館水の","Price":14000,"CategoryName":"宿泊施設","Latitude":34.182728,"Longitude":134.621684,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4.1,"GoogleReviewCount":138},{"ProductId":6762,"Title":"ROSE BAY CAFE TAKASHIMA","Price":2000,"CategoryName":"グルメ","Latitude":34.1980407,"Longitude":134.600047,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4.1,"GoogleReviewCount":92},{"ProductId":7035,"Title":"鳴門海鮮　鳴門（アオアヲ ナルト リゾート内）","Price":7000,"CategoryName":"グルメ","Latitude":34.220253,"Longitude":134.6333578,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4.2,"GoogleReviewCount":17},{"ProductId":7034,"Title":"炭火焼　海風（アオアヲ ナルト リゾート内）","Price":7000,"CategoryName":"グルメ","Latitude":34.220253,"Longitude":134.6333578,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4.2,"GoogleReviewCount":17},{"ProductId":4472,"Title":"大谷焼　窯元　田村陶芸","Price":3000,"CategoryName":"その他","Latitude":34.1609325,"Longitude":134.5383675,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4.4,"GoogleReviewCount":89},{"ProductId":7038,"Title":"テラスカフェ　オーゲ（アオアヲ ナルト リゾート内）","Price":2000,"CategoryName":"グルメ","Latitude":34.220336,"Longitude":134.6334095,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4,"GoogleReviewCount":173},{"ProductId":6613,"Title":"さかなばたけ","Price":4000,"CategoryName":"グルメ","Latitude":34.178359,"Longitude":134.608616,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4,"GoogleReviewCount":255},{"ProductId":4333,"Title":"佐々木農園","Price":1800,"CategoryName":"その他","Latitude":34.1530167,"Longitude":134.5509277,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":5,"GoogleReviewCount":6},{"ProductId":7028,"Title":"阿波郷土料理　彩（アオアヲ ナルト リゾート内）","Price":6000,"CategoryName":"グルメ","Latitude":34.2205698,"Longitude":134.6333224,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":3.9,"GoogleReviewCount":216},{"ProductId":4368,"Title":"HORIZON","Price":6000,"CategoryName":"その他","Latitude":34.2118917,"Longitude":134.6282357,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4.5,"GoogleReviewCount":11},{"ProductId":4429,"Title":"フルーツガーデンゆう","Price":1500,"CategoryName":"その他","Latitude":34.1630011,"Longitude":134.5633193,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4.1,"GoogleReviewCount":62},{"ProductId":12193,"Title":"ホテルエリアワン鳴門","Price":5000,"CategoryName":"宿泊施設","Latitude":34.181342,"Longitude":134.604253,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":3.7,"GoogleReviewCount":119},{"ProductId":4398,"Title":"フルーツガーデンやまがた","Price":2300,"CategoryName":"その他","Latitude":34.165128,"Longitude":134.570838,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":3.9,"GoogleReviewCount":146},{"ProductId":2130,"Title":"リゾートホテル モアナコースト","Price":27000,"CategoryName":"宿泊施設","Latitude":34.2008492,"Longitude":134.6243102,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4.2,"GoogleReviewCount":681},{"ProductId":4499,"Title":"鳴門市ドイツ館","Price":400,"CategoryName":"その他","Latitude":34.1647751,"Longitude":134.4990482,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":3.9,"GoogleReviewCount":882},{"ProductId":4493,"Title":"いせや農場","Price":2200,"CategoryName":"その他","Latitude":34.1446621,"Longitude":134.557051,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":3.7,"GoogleReviewCount":289},{"ProductId":11407,"Title":"THE NARUTO BASE","Price":2000,"CategoryName":"グルメ","Latitude":34.1865367,"Longitude":134.5991141,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":3.5,"GoogleReviewCount":285},{"ProductId":2191,"Title":"ベイリゾートホテル鳴門海月","Price":20000,"CategoryName":"宿泊施設","Latitude":34.2375722,"Longitude":134.6424317,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":4,"GoogleReviewCount":880},{"ProductId":2193,"Title":"鳴門グランドホテル海月","Price":20000,"CategoryName":"宿泊施設","Latitude":34.222561,"Longitude":134.634513,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":3.9,"GoogleReviewCount":861},{"ProductId":2192,"Title":"鳴門海月別邸 鯛丸海月","Price":15000,"CategoryName":"宿泊施設","Latitude":34.228931,"Longitude":134.636443,"AreaName":"鳴門・徳島","ProductPrefectureName":"徳島県","GoogleReviewRate":3.9,"GoogleReviewCount":1185}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

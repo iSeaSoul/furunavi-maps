@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>宮崎県宮崎市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>宮崎県宮崎市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=1633">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":9348,"Title":"フェニックス・シーガイア・オーシャン・タワー","Price":25000,"CategoryName":"宿泊施設","Latitude":31.959065,"Longitude":131.470009,"AreaName":"宮崎・日南・青島","ProductPrefectureName":"宮崎県","GoogleReviewRate":4.4,"GoogleReviewCount":4572},{"ProductId":9523,"Title":"天然温泉 日向の湯 ドーミーイン宮崎","Price":12000,"CategoryName":"宿泊施設","Latitude":31.9116551,"Longitude":131.4219177,"AreaName":"宮崎・日南・青島","ProductPrefectureName":"宮崎県","GoogleReviewRate":4.2,"GoogleReviewCount":1600},{"ProductId":9215,"Title":"THE MEIBIA MIYAZAKI（ザ・メイビア宮崎）","Price":20000,"CategoryName":"宿泊施設","Latitude":31.9216155,"Longitude":131.431832,"AreaName":"宮崎・日南・青島","ProductPrefectureName":"宮崎県","GoogleReviewRate":4.3,"GoogleReviewCount":590},{"ProductId":9243,"Title":"リッチモンドホテル宮崎駅前","Price":17000,"CategoryName":"宿泊施設","Latitude":31.916009,"Longitude":131.4340205,"AreaName":"宮崎・日南・青島","ProductPrefectureName":"宮崎県","GoogleReviewRate":4.2,"GoogleReviewCount":1232},{"ProductId":9248,"Title":"旅館 小戸荘","Price":12000,"CategoryName":"宿泊施設","Latitude":31.912212,"Longitude":131.424071,"AreaName":"宮崎・日南・青島","ProductPrefectureName":"宮崎県","GoogleReviewRate":4.6,"GoogleReviewCount":78},{"ProductId":9812,"Title":"ホテルJALシティ宮崎","Price":10000,"CategoryName":"宿泊施設","Latitude":31.9182857,"Longitude":131.4230651,"AreaName":"宮崎・日南・青島","ProductPrefectureName":"宮崎県","GoogleReviewRate":4.1,"GoogleReviewCount":1123},{"ProductId":13658,"Title":"青島サンクマール","Price":14000,"CategoryName":"宿泊施設","Latitude":31.7862462,"Longitude":131.4875742,"AreaName":"宮崎・日南・青島","ProductPrefectureName":"宮崎県","GoogleReviewRate":4.1,"GoogleReviewCount":916},{"ProductId":15092,"Title":"ニューウェルシティ宮崎","Price":9000,"CategoryName":"宿泊施設","Latitude":31.9145515,"Longitude":131.4343808,"AreaName":"宮崎・日南・青島","ProductPrefectureName":"宮崎県","GoogleReviewRate":0,"GoogleReviewCount":0},{"ProductId":9294,"Title":"ホテルマイステイズ宮崎","Price":6000,"CategoryName":"宿泊施設","Latitude":31.913269,"Longitude":131.4221494,"AreaName":"宮崎・日南・青島","ProductPrefectureName":"宮崎県","GoogleReviewRate":3.9,"GoogleReviewCount":213},{"ProductId":11669,"Title":"ホテルメリージュ","Price":7000,"CategoryName":"宿泊施設","Latitude":31.9138108,"Longitude":131.4234694,"AreaName":"宮崎・日南・青島","ProductPrefectureName":"宮崎県","GoogleReviewRate":3.9,"GoogleReviewCount":1084},{"ProductId":15492,"Title":"ホテルルートイン宮崎橘通","Price":10000,"CategoryName":"宿泊施設","Latitude":31.917242,"Longitude":131.4229544,"AreaName":"宮崎・日南・青島","ProductPrefectureName":"宮崎県","GoogleReviewRate":3.8,"GoogleReviewCount":624},{"ProductId":9293,"Title":"アートホテル宮崎 スカイタワー","Price":10000,"CategoryName":"宿泊施設","Latitude":31.916514,"Longitude":131.428562,"AreaName":"宮崎・日南・青島","ProductPrefectureName":"宮崎県","GoogleReviewRate":3.8,"GoogleReviewCount":1105},{"ProductId":13908,"Title":"宮崎海辺の貸別荘noironoshima","Price":20000,"CategoryName":"宿泊施設","Latitude":31.7434449,"Longitude":131.4689814,"AreaName":"宮崎・日南・青島","ProductPrefectureName":"宮崎県","GoogleReviewRate":3.5,"GoogleReviewCount":4}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

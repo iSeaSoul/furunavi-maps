@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>三重県志摩市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>三重県志摩市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=1052">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":7097,"Title":"THE HIRAMATSU HOTELS & RESORTS 賢島","Price":80000,"CategoryName":"宿泊施設","Latitude":34.3190938,"Longitude":136.8048421,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.6,"GoogleReviewCount":158},{"ProductId":11224,"Title":"THE GLAMPING PLAZA 伊勢志摩BASE","Price":19000,"CategoryName":"宿泊施設","Latitude":34.3189864,"Longitude":136.8497791,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.8,"GoogleReviewCount":202},{"ProductId":6173,"Title":"的矢かきテラス","Price":5000,"CategoryName":"グルメ","Latitude":34.367959,"Longitude":136.8599882,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.4,"GoogleReviewCount":761},{"ProductId":6418,"Title":"いかだ荘 山上","Price":25000,"CategoryName":"宿泊施設","Latitude":34.3681276,"Longitude":136.8622661,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.4,"GoogleReviewCount":694},{"ProductId":10740,"Title":"きんこ芋工房 上田商店 灯台カフェ","Price":1000,"CategoryName":"グルメ","Latitude":34.3647701,"Longitude":136.9069028,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.5,"GoogleReviewCount":391},{"ProductId":6389,"Title":"汀渚　ばさら邸","Price":65000,"CategoryName":"宿泊施設","Latitude":34.3178062,"Longitude":136.8063964,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.4,"GoogleReviewCount":485},{"ProductId":6118,"Title":"中六","Price":2700,"CategoryName":"グルメ","Latitude":34.3804087,"Longitude":136.8102555,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.4,"GoogleReviewCount":372},{"ProductId":15337,"Title":"海を望む全室露天風呂の宿 はいふう","Price":30000,"CategoryName":"宿泊施設","Latitude":34.358422,"Longitude":136.873849,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.4,"GoogleReviewCount":352},{"ProductId":6206,"Title":"ホテル旬香 伊勢志摩リゾート","Price":33000,"CategoryName":"宿泊施設","Latitude":34.325068,"Longitude":136.8770669,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.4,"GoogleReviewCount":223},{"ProductId":13948,"Title":"松阪牛肉亭 長太屋","Price":4000,"CategoryName":"グルメ","Latitude":34.3301444,"Longitude":136.8323333,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.2,"GoogleReviewCount":730},{"ProductId":6130,"Title":"内田ホルモン","Price":5000,"CategoryName":"グルメ","Latitude":34.3276708,"Longitude":136.8401188,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.5,"GoogleReviewCount":100},{"ProductId":6115,"Title":"トッポリーノ","Price":2000,"CategoryName":"グルメ","Latitude":34.2542714,"Longitude":136.8112664,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.7,"GoogleReviewCount":47},{"ProductId":6127,"Title":"あのりふぐ料理 まるせい","Price":6000,"CategoryName":"グルメ","Latitude":34.3609098,"Longitude":136.8943687,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.3,"GoogleReviewCount":247},{"ProductId":6360,"Title":"里創人倶楽部 伊勢志摩","Price":15000,"CategoryName":"宿泊施設","Latitude":34.3704739,"Longitude":136.8696439,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.2,"GoogleReviewCount":489},{"ProductId":6396,"Title":"美食の隠れ家 プロヴァンス（レストラン）","Price":15000,"CategoryName":"グルメ","Latitude":34.3152806,"Longitude":136.8302,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.2,"GoogleReviewCount":398},{"ProductId":6395,"Title":"美食の隠れ家 プロヴァンス","Price":25000,"CategoryName":"宿泊施設","Latitude":34.3152806,"Longitude":136.8302,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.2,"GoogleReviewCount":398},{"ProductId":7948,"Title":"天ぷら とばり","Price":33000,"CategoryName":"グルメ","Latitude":34.3286367,"Longitude":136.8154214,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.3,"GoogleReviewCount":119},{"ProductId":13563,"Title":"パールグルメイン竹正","Price":18000,"CategoryName":"宿泊施設","Latitude":34.2575061,"Longitude":136.8047155,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.3,"GoogleReviewCount":116},{"ProductId":7701,"Title":"檜扇荘","Price":16000,"CategoryName":"宿泊施設","Latitude":34.3149689,"Longitude":136.8016643,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.2,"GoogleReviewCount":242},{"ProductId":6364,"Title":"てっちゃん","Price":4000,"CategoryName":"グルメ","Latitude":34.3279427,"Longitude":136.8177784,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.3,"GoogleReviewCount":100},{"ProductId":6112,"Title":"伊勢志摩国立公園　賢島の宿みち潮","Price":13000,"CategoryName":"宿泊施設","Latitude":34.3060198,"Longitude":136.8163887,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.1,"GoogleReviewCount":670},{"ProductId":6291,"Title":"シェブロンカフェ","Price":1000,"CategoryName":"グルメ","Latitude":34.3470842,"Longitude":136.885939,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.1,"GoogleReviewCount":310},{"ProductId":6309,"Title":"心湯あそび ねぼーや","Price":30000,"CategoryName":"宿泊施設","Latitude":34.3198639,"Longitude":136.8823611,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.1,"GoogleReviewCount":236},{"ProductId":6290,"Title":"英虞湾の丘に佇む客室露天風呂の宿～VillaRyusei","Price":50000,"CategoryName":"宿泊施設","Latitude":34.3149255,"Longitude":136.807451,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.2,"GoogleReviewCount":58},{"ProductId":6194,"Title":"Ricca Ricca","Price":600,"CategoryName":"グルメ","Latitude":34.3262176,"Longitude":136.8413111,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.1,"GoogleReviewCount":83},{"ProductId":6193,"Title":"Shimaフレンチ食堂 ノルポル","Price":5000,"CategoryName":"グルメ","Latitude":34.328425,"Longitude":136.8238868,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.1,"GoogleReviewCount":71},{"ProductId":6237,"Title":"Kabuku Resort","Price":20000,"CategoryName":"宿泊施設","Latitude":34.3056302,"Longitude":136.8848179,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.1,"GoogleReviewCount":63},{"ProductId":6419,"Title":"いかだ荘 山上（レストラン）","Price":6000,"CategoryName":"グルメ","Latitude":34.3682562,"Longitude":136.8621755,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4.3,"GoogleReviewCount":6},{"ProductId":15456,"Title":"風待ちの湯 福寿荘","Price":16000,"CategoryName":"宿泊施設","Latitude":34.3591453,"Longitude":136.8744384,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4,"GoogleReviewCount":644},{"ProductId":7185,"Title":"伊鈴屋 鵜方駅前店","Price":2000,"CategoryName":"グルメ","Latitude":34.3290229,"Longitude":136.8256845,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":4,"GoogleReviewCount":97},{"ProductId":6176,"Title":"旅の宿　潮の灯　鯨望荘","Price":20000,"CategoryName":"宿泊施設","Latitude":34.297909,"Longitude":136.745381,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":3.7,"GoogleReviewCount":430},{"ProductId":11219,"Title":"クインテッサホテル伊勢志摩","Price":15000,"CategoryName":"宿泊施設","Latitude":34.3321429,"Longitude":136.818828,"AreaName":"賢島・志摩・合歓の郷","ProductPrefectureName":"三重県","GoogleReviewRate":3.8,"GoogleReviewCount":1096}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>京都府京丹後市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>京都府京丹後市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=1100">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":3506,"Title":"あまやどりの宿　雨情草庵","Price":54000,"CategoryName":"宿泊施設","Latitude":35.6590239,"Longitude":134.9667158,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.6,"GoogleReviewCount":104},{"ProductId":3503,"Title":"昭恋館　よ志のや","Price":40000,"CategoryName":"宿泊施設","Latitude":35.7354638,"Longitude":135.0942023,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.4,"GoogleReviewCount":198},{"ProductId":7117,"Title":"夕日ヶ浦温泉　旅館海舟（レストラン）","Price":15000,"CategoryName":"グルメ","Latitude":35.662045,"Longitude":134.967048,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.3,"GoogleReviewCount":780},{"ProductId":3508,"Title":"夕日ヶ浦温泉　旅館海舟","Price":22000,"CategoryName":"宿泊施設","Latitude":35.662045,"Longitude":134.967048,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.3,"GoogleReviewCount":780},{"ProductId":11453,"Title":"丹後ジャージー牧場　ミルク工房そら","Price":500,"CategoryName":"グルメ","Latitude":35.6162818,"Longitude":134.9231486,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.2,"GoogleReviewCount":1491},{"ProductId":3502,"Title":"はなれ櫂","Price":39000,"CategoryName":"宿泊施設","Latitude":35.6601163,"Longitude":134.964736,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.5,"GoogleReviewCount":213},{"ProductId":3492,"Title":"大人の絶景隠れ宿　寿海亭","Price":22000,"CategoryName":"宿泊施設","Latitude":35.7308565,"Longitude":135.0889018,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.5,"GoogleReviewCount":213},{"ProductId":8362,"Title":"夕日ヶ浦温泉　静 花扇","Price":29000,"CategoryName":"宿泊施設","Latitude":35.6682505,"Longitude":134.9681849,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.4,"GoogleReviewCount":313},{"ProductId":12461,"Title":"いっぺん庵","Price":38000,"CategoryName":"宿泊施設","Latitude":35.6516586,"Longitude":134.8828375,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.5,"GoogleReviewCount":193},{"ProductId":5034,"Title":"あみけん","Price":5000,"CategoryName":"グルメ","Latitude":35.623567,"Longitude":135.062884,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.5,"GoogleReviewCount":178},{"ProductId":3612,"Title":"澄海","Price":76000,"CategoryName":"宿泊施設","Latitude":35.645224,"Longitude":134.902858,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.1,"GoogleReviewCount":237},{"ProductId":4484,"Title":"宇川温泉よし野の里","Price":7000,"CategoryName":"宿泊施設","Latitude":35.7541606,"Longitude":135.1765836,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.2,"GoogleReviewCount":877},{"ProductId":14670,"Title":"和のオーベルジュ まつつる","Price":25000,"CategoryName":"宿泊施設","Latitude":35.701245,"Longitude":135.054027,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.7,"GoogleReviewCount":67},{"ProductId":4628,"Title":"昭恋館　よ志のや（レストラン）","Price":20000,"CategoryName":"グルメ","Latitude":35.7354638,"Longitude":135.0942023,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.4,"GoogleReviewCount":198},{"ProductId":3613,"Title":"水屋敷","Price":114000,"CategoryName":"宿泊施設","Latitude":35.6938638,"Longitude":135.0408748,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.2,"GoogleReviewCount":23},{"ProductId":12910,"Title":"シーサイド佐竹","Price":25000,"CategoryName":"宿泊施設","Latitude":35.6883927,"Longitude":135.024433,"AreaName":"宇治","ProductPrefectureName":"京都府","GoogleReviewRate":4.3,"GoogleReviewCount":346},{"ProductId":4461,"Title":"料理旅館 海の華","Price":35000,"CategoryName":"宿泊施設","Latitude":35.6640002,"Longitude":134.9665592,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.4,"GoogleReviewCount":192},{"ProductId":3487,"Title":"HOTEL＆湖邸 艸花","Price":20000,"CategoryName":"宿泊施設","Latitude":35.6933333,"Longitude":135.0425,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.3,"GoogleReviewCount":291},{"ProductId":8561,"Title":"地魚料理の宿　新海荘","Price":20000,"CategoryName":"宿泊施設","Latitude":35.6627294,"Longitude":134.9670449,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.5,"GoogleReviewCount":102},{"ProductId":7613,"Title":"waterside cottage Heron","Price":39000,"CategoryName":"宿泊施設","Latitude":35.6062923,"Longitude":134.8995922,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.6,"GoogleReviewCount":50},{"ProductId":3496,"Title":"デュラクスアウトドアリゾート京丹後久美浜LABO","Price":28000,"CategoryName":"宿泊施設","Latitude":35.5345067,"Longitude":134.9391677,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.7,"GoogleReviewCount":29},{"ProductId":3495,"Title":"料理旅館　夕日ヶ浦","Price":25000,"CategoryName":"宿泊施設","Latitude":35.6686504,"Longitude":134.9684884,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.2,"GoogleReviewCount":316},{"ProductId":6977,"Title":"みのり旅館","Price":22000,"CategoryName":"宿泊施設","Latitude":35.660576,"Longitude":134.967516,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.3,"GoogleReviewCount":124},{"ProductId":4498,"Title":"海の見えるレストランTANGOTANGO","Price":1000,"CategoryName":"グルメ","Latitude":35.7543688,"Longitude":135.1769195,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.8,"GoogleReviewCount":14},{"ProductId":14914,"Title":"お食事処 きくのや","Price":1500,"CategoryName":"グルメ","Latitude":35.6254399,"Longitude":135.0717482,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.2,"GoogleReviewCount":199},{"ProductId":14283,"Title":"リブマックスリゾート夕日ヶ浦木津温泉","Price":19000,"CategoryName":"宿泊施設","Latitude":35.6501083,"Longitude":134.9740295,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.2,"GoogleReviewCount":192},{"ProductId":10346,"Title":"HOTEL HEKISUIEN","Price":10000,"CategoryName":"宿泊施設","Latitude":35.6351307,"Longitude":134.8899969,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.7,"GoogleReviewCount":15},{"ProductId":4505,"Title":"（日帰り温泉）宇川温泉よし野の里","Price":600,"CategoryName":"その他","Latitude":35.7541606,"Longitude":135.1765836,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.2,"GoogleReviewCount":877},{"ProductId":4504,"Title":"宇川温泉よし野の里（キャンプ場）","Price":7100,"CategoryName":"その他","Latitude":35.7541606,"Longitude":135.1765836,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.2,"GoogleReviewCount":877},{"ProductId":4550,"Title":"細見工房","Price":1800,"CategoryName":"その他","Latitude":35.619721,"Longitude":134.9227207,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.9,"GoogleReviewCount":35},{"ProductId":3491,"Title":"間人温泉郷　和み庵　空と海","Price":22000,"CategoryName":"宿泊施設","Latitude":35.752312,"Longitude":135.155837,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.2,"GoogleReviewCount":92},{"ProductId":3500,"Title":"佳松苑 別邸ふうか","Price":38000,"CategoryName":"宿泊施設","Latitude":35.6596815,"Longitude":134.967271,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.1,"GoogleReviewCount":350},{"ProductId":7844,"Title":"碧翠御苑","Price":22000,"CategoryName":"宿泊施設","Latitude":35.6354083,"Longitude":134.8906278,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.1,"GoogleReviewCount":287},{"ProductId":14253,"Title":"リブマックスリゾート京丹後シーフロント","Price":22000,"CategoryName":"宿泊施設","Latitude":35.6922648,"Longitude":135.0316379,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4,"GoogleReviewCount":446},{"ProductId":3494,"Title":"時季を彩る　佳松苑","Price":25000,"CategoryName":"宿泊施設","Latitude":35.6592069,"Longitude":134.9671213,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4,"GoogleReviewCount":883},{"ProductId":3490,"Title":"夕日ヶ浦温泉　夕日浪漫　一望館","Price":22000,"CategoryName":"宿泊施設","Latitude":35.664435,"Longitude":134.967081,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4,"GoogleReviewCount":668},{"ProductId":15508,"Title":"レイクサイド琴引","Price":28000,"CategoryName":"宿泊施設","Latitude":35.6940824,"Longitude":135.0409684,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":3.8,"GoogleReviewCount":133},{"ProductId":10327,"Title":"久美浜カンツリークラブ","Price":11000,"CategoryName":"その他","Latitude":35.6240166,"Longitude":134.8902151,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4,"GoogleReviewCount":210},{"ProductId":4924,"Title":"かまい海岸シーカヤッククラブ","Price":8000,"CategoryName":"その他","Latitude":35.6512733,"Longitude":134.8825785,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":0,"GoogleReviewCount":0},{"ProductId":4579,"Title":"アミティ丹後","Price":1500,"CategoryName":"その他","Latitude":35.681502,"Longitude":135.02551,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":3.9,"GoogleReviewCount":267},{"ProductId":14777,"Title":"古民家　吾平治","Price":30000,"CategoryName":"宿泊施設","Latitude":35.741712,"Longitude":135.112766,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":4.1,"GoogleReviewCount":8},{"ProductId":4490,"Title":"丹後王国フルーツガーデン","Price":2300,"CategoryName":"その他","Latitude":35.6805237,"Longitude":135.0646986,"AreaName":"丹後","ProductPrefectureName":"京都府","GoogleReviewRate":3.6,"GoogleReviewCount":60}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>大阪府泉佐野市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>大阪府泉佐野市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=1127">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":10319,"Title":"ホテル日航関西空港","Price":20000,"CategoryName":"宿泊施設","Latitude":34.4364202,"Longitude":135.2428789,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":4.4,"GoogleReviewCount":3124},{"ProductId":8112,"Title":"オディシススイーツ大阪エアポートホテル","Price":20000,"CategoryName":"宿泊施設","Latitude":34.411451,"Longitude":135.2998282,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":4.5,"GoogleReviewCount":1211},{"ProductId":4830,"Title":"レフ関空泉佐野 by ベッセルホテルズ","Price":6000,"CategoryName":"宿泊施設","Latitude":34.4107111,"Longitude":135.3166468,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":4.3,"GoogleReviewCount":475},{"ProductId":11648,"Title":"オールデイダイニング「ザ・ブラッスリー」（ホテル日航関西空港内）","Price":5200,"CategoryName":"グルメ","Latitude":34.4364731,"Longitude":135.242862,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":4.4,"GoogleReviewCount":232},{"ProductId":4551,"Title":"泉佐野センターホテル","Price":9000,"CategoryName":"宿泊施設","Latitude":34.4087636,"Longitude":135.317511,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":4.2,"GoogleReviewCount":895},{"ProductId":7614,"Title":"不動口館","Price":19000,"CategoryName":"宿泊施設","Latitude":34.34244989999999,"Longitude":135.3743234,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":4.2,"GoogleReviewCount":879},{"ProductId":4382,"Title":"関空温泉ホテルガーデンパレス","Price":13000,"CategoryName":"宿泊施設","Latitude":34.4029432,"Longitude":135.3171903,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":4.1,"GoogleReviewCount":771},{"ProductId":11651,"Title":"中華料理「桃李」（ホテル日航関西空港内）","Price":7500,"CategoryName":"グルメ","Latitude":34.4364619,"Longitude":135.2428573,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":4.3,"GoogleReviewCount":64},{"ProductId":4502,"Title":"鉄板焼「りんくう」（スターゲイトホテル関西エアポート内）","Price":30000,"CategoryName":"グルメ","Latitude":34.4112228,"Longitude":135.2998995,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":4.2,"GoogleReviewCount":47},{"ProductId":4396,"Title":"割烹　松屋","Price":80000,"CategoryName":"グルメ","Latitude":34.4079293,"Longitude":135.3245277,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":4.1,"GoogleReviewCount":96},{"ProductId":4501,"Title":"中国料理「星龍」（スターゲイトホテル関西エアポート内）","Price":10000,"CategoryName":"グルメ","Latitude":34.4111792,"Longitude":135.3000064,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":4.1,"GoogleReviewCount":71},{"ProductId":8541,"Title":"ファーストキャビン関西空港","Price":7000,"CategoryName":"宿泊施設","Latitude":34.4371558,"Longitude":135.2435364,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":4,"GoogleReviewCount":372},{"ProductId":4384,"Title":"関空温泉ホテルガーデンパレス　レストラン「和み」","Price":4000,"CategoryName":"グルメ","Latitude":34.4029674,"Longitude":135.3172022,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":4,"GoogleReviewCount":21},{"ProductId":4383,"Title":"（日帰り温泉）関空温泉ホテルガーデンパレス","Price":5000,"CategoryName":"その他","Latitude":34.4029432,"Longitude":135.3171903,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":4.1,"GoogleReviewCount":771},{"ProductId":11777,"Title":"waterfront kitchen garden（関西エアポートワシントンホテル内）","Price":3500,"CategoryName":"グルメ","Latitude":34.4110959,"Longitude":135.3015845,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":3.9,"GoogleReviewCount":170},{"ProductId":4462,"Title":"美食俱楽部一歩 泉佐野店","Price":12000,"CategoryName":"グルメ","Latitude":34.4028194,"Longitude":135.3138694,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":3.9,"GoogleReviewCount":268},{"ProductId":11653,"Title":"和彩「花ざと」（ホテル日航関西空港内）","Price":6000,"CategoryName":"グルメ","Latitude":34.4369042,"Longitude":135.2430653,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":3.5,"GoogleReviewCount":21},{"ProductId":4500,"Title":"スカイダイニング256「スターゲイト」（スターゲイトホテル関西エアポート内）","Price":5000,"CategoryName":"グルメ","Latitude":34.4112228,"Longitude":135.2998995,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":3.8,"GoogleReviewCount":151},{"ProductId":4503,"Title":"日本料理「天翠」（スターゲイトホテル関西エアポート内）","Price":10000,"CategoryName":"グルメ","Latitude":34.4112109,"Longitude":135.2999226,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":3.5,"GoogleReviewCount":30},{"ProductId":7717,"Title":"み奈美亭","Price":18000,"CategoryName":"宿泊施設","Latitude":34.3422775,"Longitude":135.3748016,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":3.8,"GoogleReviewCount":641},{"ProductId":7467,"Title":"ホテルサンプラスユタカ","Price":5000,"CategoryName":"宿泊施設","Latitude":34.4200103,"Longitude":135.3272145,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":3.6,"GoogleReviewCount":189},{"ProductId":7365,"Title":"ホテルシーガル","Price":8000,"CategoryName":"宿泊施設","Latitude":34.4247336,"Longitude":135.3268805,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":3.6,"GoogleReviewCount":216},{"ProductId":7466,"Title":"ホテルニューユタカ","Price":5000,"CategoryName":"宿泊施設","Latitude":34.4116787,"Longitude":135.3310828,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":3.4,"GoogleReviewCount":131},{"ProductId":5407,"Title":"YAKINIKU BUFFET左近 りんくうシークル店","Price":2500,"CategoryName":"グルメ","Latitude":34.4083768,"Longitude":135.2959821,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":3.6,"GoogleReviewCount":491},{"ProductId":5408,"Title":"バイキング左近  末広店","Price":2500,"CategoryName":"グルメ","Latitude":34.3998938,"Longitude":135.3104892,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":3.5,"GoogleReviewCount":621},{"ProductId":7426,"Title":"シティホテルエアポートインプリンス","Price":5000,"CategoryName":"宿泊施設","Latitude":34.412243,"Longitude":135.3157017,"AreaName":"大阪南部","ProductPrefectureName":"大阪府","GoogleReviewRate":3.3,"GoogleReviewCount":414}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

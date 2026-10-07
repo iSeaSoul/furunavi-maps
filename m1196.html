@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>兵庫県香美町 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>兵庫県香美町</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=1196">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":6119,"Title":"お宿まる屋","Price":50000,"CategoryName":"宿泊施設","Latitude":35.6476528,"Longitude":134.663529,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.7,"GoogleReviewCount":128},{"ProductId":14700,"Title":"KAN-ICHI","Price":1500,"CategoryName":"グルメ","Latitude":35.6385705,"Longitude":134.6222668,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.3,"GoogleReviewCount":954},{"ProductId":14800,"Title":"かに楽座 甲羅戯","Price":50000,"CategoryName":"宿泊施設","Latitude":35.6460456,"Longitude":134.6636914,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.3,"GoogleReviewCount":226},{"ProductId":15038,"Title":"香住 柴山 夕庵","Price":50000,"CategoryName":"宿泊施設","Latitude":35.6563841,"Longitude":134.6581484,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.5,"GoogleReviewCount":75},{"ProductId":12968,"Title":"ハチ北温泉 お宿 ひさ家","Price":20000,"CategoryName":"宿泊施設","Latitude":35.4041572,"Longitude":134.5580994,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.4,"GoogleReviewCount":337},{"ProductId":11414,"Title":"カイノヴィラ","Price":19000,"CategoryName":"宿泊施設","Latitude":35.6568052,"Longitude":134.649547,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.8,"GoogleReviewCount":74},{"ProductId":14846,"Title":"おやど旬香","Price":30000,"CategoryName":"宿泊施設","Latitude":35.642172,"Longitude":134.6127164,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.8,"GoogleReviewCount":71},{"ProductId":14842,"Title":"美味しの宿　かどや","Price":28000,"CategoryName":"宿泊施設","Latitude":35.6532595,"Longitude":134.6912806,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.5,"GoogleReviewCount":170},{"ProductId":9473,"Title":"さだ助","Price":20000,"CategoryName":"宿泊施設","Latitude":35.6428955,"Longitude":134.6094769,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.3,"GoogleReviewCount":350},{"ProductId":14807,"Title":"四季香る宿さだえ","Price":23000,"CategoryName":"宿泊施設","Latitude":35.6533733,"Longitude":134.6934662,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.7,"GoogleReviewCount":59},{"ProductId":15181,"Title":"にしたにや海華","Price":31000,"CategoryName":"宿泊施設","Latitude":35.6538024,"Longitude":134.6911399,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.4,"GoogleReviewCount":178},{"ProductId":14744,"Title":"旬彩dining 膳","Price":5000,"CategoryName":"グルメ","Latitude":35.6352418,"Longitude":134.6268218,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.4,"GoogleReviewCount":162},{"ProductId":9938,"Title":"ハチ北高原 旅館 ささや SASAYA","Price":12000,"CategoryName":"宿泊施設","Latitude":35.4050729,"Longitude":134.5595742,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.7,"GoogleReviewCount":46},{"ProductId":13827,"Title":"さだ助　別邸　ICHIJO","Price":36000,"CategoryName":"宿泊施設","Latitude":35.6428399,"Longitude":134.6098851,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.5,"GoogleReviewCount":63},{"ProductId":14854,"Title":"香住 網元かにの宿 やまや","Price":20000,"CategoryName":"宿泊施設","Latitude":35.6422312,"Longitude":134.6111943,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.6,"GoogleReviewCount":41},{"ProductId":14971,"Title":"魚や（UOYA）はらとく","Price":2000,"CategoryName":"グルメ","Latitude":35.6359811,"Longitude":134.6237013,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.3,"GoogleReviewCount":155},{"ProductId":14723,"Title":"中華 白龍","Price":1000,"CategoryName":"グルメ","Latitude":35.6390435,"Longitude":134.6240757,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.3,"GoogleReviewCount":138},{"ProductId":12865,"Title":"佐津温泉 潮風香る内湯の宿　かめや","Price":30000,"CategoryName":"宿泊施設","Latitude":35.653329,"Longitude":134.693702,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.4,"GoogleReviewCount":77},{"ProductId":14976,"Title":"颯花（さつはな）","Price":20000,"CategoryName":"宿泊施設","Latitude":35.653512,"Longitude":134.688717,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.4,"GoogleReviewCount":74},{"ProductId":5691,"Title":"宙の森ホテル花郷里","Price":36000,"CategoryName":"宿泊施設","Latitude":35.45157,"Longitude":134.5338842,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.4,"GoogleReviewCount":74},{"ProductId":5739,"Title":"湯宿 川本屋","Price":23000,"CategoryName":"宿泊施設","Latitude":35.642398,"Longitude":134.6111416,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.3,"GoogleReviewCount":125},{"ProductId":14672,"Title":"夕香楼しょう和","Price":36000,"CategoryName":"宿泊施設","Latitude":35.6385935,"Longitude":134.6228259,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.2,"GoogleReviewCount":230},{"ProductId":14982,"Title":"滝見亭","Price":2700,"CategoryName":"グルメ","Latitude":35.4467982,"Longitude":134.5172967,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.5,"GoogleReviewCount":34},{"ProductId":15228,"Title":"海岸通り前食堂 きん魚","Price":2000,"CategoryName":"グルメ","Latitude":35.6430013,"Longitude":134.6306973,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.2,"GoogleReviewCount":200},{"ProductId":9933,"Title":"旅館　なかや","Price":13000,"CategoryName":"宿泊施設","Latitude":35.404539,"Longitude":134.558449,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.4,"GoogleReviewCount":50},{"ProductId":5746,"Title":"旬の宿尾崎屋","Price":26000,"CategoryName":"宿泊施設","Latitude":35.6502584,"Longitude":134.5576644,"AreaName":"城崎・竹野","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.4,"GoogleReviewCount":42},{"ProductId":14828,"Title":"華和ゐ　香住本店","Price":44000,"CategoryName":"グルメ","Latitude":35.6393132,"Longitude":134.6249795,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.3,"GoogleReviewCount":61},{"ProductId":14844,"Title":"民宿 たきもと","Price":25000,"CategoryName":"宿泊施設","Latitude":35.6552444,"Longitude":134.69315,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.3,"GoogleReviewCount":35},{"ProductId":5717,"Title":"荒神の宿　三宝","Price":20000,"CategoryName":"宿泊施設","Latitude":35.6427171,"Longitude":134.6112669,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.1,"GoogleReviewCount":285},{"ProductId":15242,"Title":"ハチ北高原　旅館　わさびや","Price":15000,"CategoryName":"宿泊施設","Latitude":35.403825,"Longitude":134.557526,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.3,"GoogleReviewCount":21},{"ProductId":5759,"Title":"かどや新館","Price":10000,"CategoryName":"宿泊施設","Latitude":35.404853,"Longitude":134.558151,"AreaName":"城崎・竹野","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.1,"GoogleReviewCount":61},{"ProductId":15013,"Title":"民宿 たにわ","Price":10000,"CategoryName":"宿泊施設","Latitude":35.639727,"Longitude":134.612332,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.1,"GoogleReviewCount":11},{"ProductId":14998,"Title":"民宿みはら","Price":20000,"CategoryName":"宿泊施設","Latitude":35.6523717,"Longitude":134.6931997,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4,"GoogleReviewCount":23},{"ProductId":14781,"Title":"波音の宿 くろしお","Price":30000,"CategoryName":"宿泊施設","Latitude":35.6543742,"Longitude":134.6940944,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":4,"GoogleReviewCount":124},{"ProductId":10702,"Title":"夕凪の丘","Price":20000,"CategoryName":"宿泊施設","Latitude":35.6549922,"Longitude":134.6477931,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":3.9,"GoogleReviewCount":168},{"ProductId":8475,"Title":"リゾートヴィラハチ北","Price":17000,"CategoryName":"宿泊施設","Latitude":35.423874,"Longitude":134.58843,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":3.8,"GoogleReviewCount":61},{"ProductId":14825,"Title":"かに八代　れんが亭","Price":2200,"CategoryName":"グルメ","Latitude":35.6397304,"Longitude":134.6266021,"AreaName":"香住・湯村・神鍋","ProductPrefectureName":"兵庫県","GoogleReviewRate":3.8,"GoogleReviewCount":496}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

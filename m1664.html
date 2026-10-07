@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>鹿児島県指宿市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>鹿児島県指宿市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=1664">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":4814,"Title":"鹿児島　砂むし温泉　指宿白水館","Price":42000,"CategoryName":"宿泊施設","Latitude":31.253832,"Longitude":130.655518,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.4,"GoogleReviewCount":3590},{"ProductId":4697,"Title":"いぶすき秀水園","Price":30000,"CategoryName":"宿泊施設","Latitude":31.2280881,"Longitude":130.6522123,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.4,"GoogleReviewCount":699},{"ProductId":13781,"Title":"別邸 天降る丘","Price":48000,"CategoryName":"宿泊施設","Latitude":31.2348772,"Longitude":130.6128026,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.5,"GoogleReviewCount":66},{"ProductId":4994,"Title":"旅館月見荘","Price":17000,"CategoryName":"宿泊施設","Latitude":31.229531,"Longitude":130.651603,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.7,"GoogleReviewCount":114},{"ProductId":4774,"Title":"ものがたりカフェ　COCO","Price":1500,"CategoryName":"グルメ","Latitude":31.1678473,"Longitude":130.5825033,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.9,"GoogleReviewCount":66},{"ProductId":4658,"Title":"味彩　むさし","Price":5000,"CategoryName":"グルメ","Latitude":31.241278,"Longitude":130.642006,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.5,"GoogleReviewCount":206},{"ProductId":4817,"Title":"日本料理 日髙","Price":3000,"CategoryName":"グルメ","Latitude":31.2343448,"Longitude":130.6481436,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.5,"GoogleReviewCount":193},{"ProductId":4650,"Title":"IBU CAFÉ","Price":1000,"CategoryName":"グルメ","Latitude":31.2288877,"Longitude":130.6518631,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.7,"GoogleReviewCount":66},{"ProductId":4765,"Title":"ゆのはまバル","Price":3000,"CategoryName":"グルメ","Latitude":31.2301034,"Longitude":130.6503695,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.6,"GoogleReviewCount":79},{"ProductId":4810,"Title":"Yasuagari","Price":4000,"CategoryName":"グルメ","Latitude":31.237219,"Longitude":130.645969,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.6,"GoogleReviewCount":68},{"ProductId":4644,"Title":"美庵樹","Price":6000,"CategoryName":"グルメ","Latitude":31.239325,"Longitude":130.645636,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.6,"GoogleReviewCount":57},{"ProductId":10903,"Title":"温泉水プール&夫婦露天風呂の離れ宿　悠離庵","Price":35000,"CategoryName":"宿泊施設","Latitude":31.235682,"Longitude":130.6252897,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.3,"GoogleReviewCount":198},{"ProductId":4834,"Title":"休暇村指宿","Price":15000,"CategoryName":"宿泊施設","Latitude":31.2601262,"Longitude":130.659904,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.1,"GoogleReviewCount":1367},{"ProductId":4816,"Title":"薩摩伝承館","Price":1500,"CategoryName":"その他","Latitude":31.2530253,"Longitude":130.6538094,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.3,"GoogleReviewCount":461},{"ProductId":5009,"Title":"こらんの湯 錦江楼","Price":20000,"CategoryName":"宿泊施設","Latitude":31.2730731,"Longitude":130.625789,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.1,"GoogleReviewCount":521},{"ProductId":4815,"Title":"リストランテFenice","Price":7000,"CategoryName":"グルメ","Latitude":31.2532854,"Longitude":130.653999,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.2,"GoogleReviewCount":114},{"ProductId":4636,"Title":"マンゴーの森","Price":1000,"CategoryName":"グルメ","Latitude":31.1708647,"Longitude":130.5836916,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.1,"GoogleReviewCount":455},{"ProductId":4730,"Title":"Michelle（ミシェル）","Price":2000,"CategoryName":"グルメ","Latitude":31.2472559,"Longitude":130.6323153,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.4,"GoogleReviewCount":28},{"ProductId":4693,"Title":"クマガワジェット池田湖支店","Price":12000,"CategoryName":"その他","Latitude":31.2464829,"Longitude":130.5449893,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":5,"GoogleReviewCount":3},{"ProductId":8068,"Title":"指宿温泉　ホテル翔月","Price":16000,"CategoryName":"宿泊施設","Latitude":31.2347108,"Longitude":130.6495606,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.1,"GoogleReviewCount":211},{"ProductId":4694,"Title":"池田湖マリーナWARNA","Price":6000,"CategoryName":"その他","Latitude":31.2482041,"Longitude":130.548542,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.2,"GoogleReviewCount":43},{"ProductId":4684,"Title":"指宿温泉　指宿こころの宿","Price":12000,"CategoryName":"宿泊施設","Latitude":31.2547222,"Longitude":130.6516667,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4,"GoogleReviewCount":822},{"ProductId":4808,"Title":"食彩空間 たばた","Price":2000,"CategoryName":"グルメ","Latitude":31.2516425,"Longitude":130.6324259,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":3.8,"GoogleReviewCount":33},{"ProductId":5011,"Title":"絵付工房　秋月窯","Price":5000,"CategoryName":"その他","Latitude":31.2409635,"Longitude":130.6344404,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.5,"GoogleReviewCount":8},{"ProductId":4811,"Title":"玉丸","Price":10000,"CategoryName":"その他","Latitude":31.2424481,"Longitude":130.6510867,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":5,"GoogleReviewCount":2},{"ProductId":4672,"Title":"絵付け体験（絵付工房　秋月窯）","Price":2000,"CategoryName":"その他","Latitude":31.2409635,"Longitude":130.6344404,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.5,"GoogleReviewCount":8},{"ProductId":4806,"Title":"1日船長釣り体験 明菜丸","Price":8000,"CategoryName":"その他","Latitude":31.2473817,"Longitude":130.6460644,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":0,"GoogleReviewCount":0},{"ProductId":4768,"Title":"紅龍","Price":1500,"CategoryName":"グルメ","Latitude":31.233778,"Longitude":130.648306,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":3.7,"GoogleReviewCount":128},{"ProductId":4763,"Title":"サザンテラス","Price":25000,"CategoryName":"宿泊施設","Latitude":31.2614175,"Longitude":130.6311938,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":4.7,"GoogleReviewCount":6},{"ProductId":4764,"Title":"指宿海上ホテル","Price":15000,"CategoryName":"宿泊施設","Latitude":31.2270116,"Longitude":130.6536096,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":3.8,"GoogleReviewCount":872},{"ProductId":9392,"Title":"指宿フェニックスホテル","Price":19000,"CategoryName":"宿泊施設","Latitude":31.2178849,"Longitude":130.6440262,"AreaName":"指宿・開聞","ProductPrefectureName":"鹿児島県","GoogleReviewRate":3.8,"GoogleReviewCount":1027}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

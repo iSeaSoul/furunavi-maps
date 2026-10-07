@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>山形県米沢市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>山形県米沢市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=314">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":4755,"Title":"米沢牛黄木 金剛閣","Price":6000,"CategoryName":"グルメ","Latitude":37.9117323,"Longitude":140.1164304,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4.4,"GoogleReviewCount":1359},{"ProductId":4689,"Title":"米沢牛 登起波＜TOKIWA＞","Price":6000,"CategoryName":"グルメ","Latitude":37.9192836,"Longitude":140.1090254,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4.4,"GoogleReviewCount":881},{"ProductId":3213,"Title":"白布温泉 湯滝の宿 西屋","Price":18000,"CategoryName":"宿泊施設","Latitude":37.7796357,"Longitude":140.1190804,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4.4,"GoogleReviewCount":529},{"ProductId":2546,"Title":"滑川温泉　福島屋","Price":11000,"CategoryName":"宿泊施設","Latitude":37.7823002,"Longitude":140.2273628,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4.3,"GoogleReviewCount":801},{"ProductId":6185,"Title":"米沢牛・山懐料理 吉亭","Price":8000,"CategoryName":"グルメ","Latitude":37.9049419,"Longitude":140.1076862,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4.4,"GoogleReviewCount":361},{"ProductId":4688,"Title":"鳥勝牛肉店","Price":5000,"CategoryName":"グルメ","Latitude":37.9145987,"Longitude":140.1062831,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4.6,"GoogleReviewCount":156},{"ProductId":4667,"Title":"米澤牛DINING べこや","Price":6000,"CategoryName":"グルメ","Latitude":37.9091807,"Longitude":140.1262603,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4.2,"GoogleReviewCount":1213},{"ProductId":5808,"Title":"東屋","Price":20000,"CategoryName":"宿泊施設","Latitude":37.7801496,"Longitude":140.1197934,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4.3,"GoogleReviewCount":481},{"ProductId":2365,"Title":"時の宿 すみれ","Price":30000,"CategoryName":"宿泊施設","Latitude":37.8582212,"Longitude":140.1575003,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4.4,"GoogleReviewCount":231},{"ProductId":3391,"Title":"五つの心の宿 高砂屋","Price":17000,"CategoryName":"宿泊施設","Latitude":37.879921,"Longitude":140.055144,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4.4,"GoogleReviewCount":216},{"ProductId":14447,"Title":"米沢牛・焼肉さかの","Price":5000,"CategoryName":"グルメ","Latitude":37.9149626,"Longitude":140.1118421,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4.2,"GoogleReviewCount":678},{"ProductId":2566,"Title":"小野川温泉　名湯の宿　吾妻荘","Price":15000,"CategoryName":"宿泊施設","Latitude":37.879759,"Longitude":140.0551104,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4.3,"GoogleReviewCount":279},{"ProductId":4690,"Title":"登起波 分店 登","Price":3000,"CategoryName":"グルメ","Latitude":37.924692,"Longitude":140.116646,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4.2,"GoogleReviewCount":520},{"ProductId":11461,"Title":"小野川温泉　宝寿の湯","Price":9000,"CategoryName":"宿泊施設","Latitude":37.8808965,"Longitude":140.0524248,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4.2,"GoogleReviewCount":287},{"ProductId":4829,"Title":"カフェ「ル・シエル」","Price":2000,"CategoryName":"グルメ","Latitude":37.9086665,"Longitude":140.1078104,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4.6,"GoogleReviewCount":17},{"ProductId":3392,"Title":"小野川温泉 扇屋旅館","Price":17000,"CategoryName":"宿泊施設","Latitude":37.8802319,"Longitude":140.0549159,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4.2,"GoogleReviewCount":120},{"ProductId":3206,"Title":"中屋別館不動閣","Price":15000,"CategoryName":"宿泊施設","Latitude":37.7817692,"Longitude":140.1183445,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4.1,"GoogleReviewCount":393},{"ProductId":12410,"Title":"ロイヤルパインズホテル米沢","Price":8000,"CategoryName":"宿泊施設","Latitude":37.9148066,"Longitude":140.1101973,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4.1,"GoogleReviewCount":335},{"ProductId":3356,"Title":"鈴の宿 登府屋旅館","Price":18000,"CategoryName":"宿泊施設","Latitude":37.8807009,"Longitude":140.0541349,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4.1,"GoogleReviewCount":205},{"ProductId":2384,"Title":"別邸 山の季","Price":30000,"CategoryName":"宿泊施設","Latitude":37.7819424,"Longitude":140.119335,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4,"GoogleReviewCount":83},{"ProductId":4828,"Title":"米沢牛レストラン「アビシス」","Price":3000,"CategoryName":"グルメ","Latitude":37.9089783,"Longitude":140.1078456,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":3.8,"GoogleReviewCount":106},{"ProductId":9936,"Title":"森の中の隠れ家レストラン ローズガーデン","Price":5000,"CategoryName":"グルメ","Latitude":37.9292477,"Longitude":140.1204239,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":3.8,"GoogleReviewCount":107},{"ProductId":2269,"Title":"小野川温泉 河鹿荘","Price":25000,"CategoryName":"宿泊施設","Latitude":37.8779686,"Longitude":140.0543154,"AreaName":"米沢","ProductPrefectureName":"山形県","GoogleReviewRate":4.2,"GoogleReviewCount":627}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

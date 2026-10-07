@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>三重県伊勢市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>三重県伊勢市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=1042">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":2308,"Title":"AUBERGE YUSURA（オーベルジュ ユスラ）","Price":64000,"CategoryName":"宿泊施設","Latitude":34.5021437,"Longitude":136.796143,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.7,"GoogleReviewCount":90},{"ProductId":7953,"Title":"いにしえの宿 伊久","Price":40000,"CategoryName":"宿泊施設","Latitude":34.4618537,"Longitude":136.7277018,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.2,"GoogleReviewCount":1269},{"ProductId":4220,"Title":"伊勢夫婦岩ふれあい水族館シーパラダイス（伊勢シーパラダイス）","Price":2100,"CategoryName":"その他","Latitude":34.5073454,"Longitude":136.7915976,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.2,"GoogleReviewCount":5632},{"ProductId":14167,"Title":"倭庵 黒石","Price":10000,"CategoryName":"グルメ","Latitude":34.4845445,"Longitude":136.7203497,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.6,"GoogleReviewCount":250},{"ProductId":12326,"Title":"伊勢千年のしじま　月夜見の座","Price":88000,"CategoryName":"宿泊施設","Latitude":34.4544408,"Longitude":136.6725856,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.5,"GoogleReviewCount":65},{"ProductId":7003,"Title":"伊勢三玄","Price":15000,"CategoryName":"グルメ","Latitude":34.511052,"Longitude":136.704944,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.9,"GoogleReviewCount":93},{"ProductId":10599,"Title":"食遊人","Price":2000,"CategoryName":"グルメ","Latitude":34.5414418,"Longitude":136.6668429,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.5,"GoogleReviewCount":186},{"ProductId":15077,"Title":"グリル片山","Price":13000,"CategoryName":"グルメ","Latitude":34.4871145,"Longitude":136.7162784,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.5,"GoogleReviewCount":183},{"ProductId":2309,"Title":"旅荘 海の蝶","Price":32000,"CategoryName":"宿泊施設","Latitude":34.495194,"Longitude":136.814157,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.2,"GoogleReviewCount":696},{"ProductId":8088,"Title":"銀次郎 -GINJIRO-","Price":15000,"CategoryName":"グルメ","Latitude":34.5224744,"Longitude":136.6688147,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.8,"GoogleReviewCount":39},{"ProductId":2238,"Title":"京平荘","Price":50000,"CategoryName":"宿泊施設","Latitude":34.499789,"Longitude":136.741969,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":3.9,"GoogleReviewCount":8},{"ProductId":10032,"Title":"個室創作ダイニング パセプション","Price":6000,"CategoryName":"グルメ","Latitude":34.5148757,"Longitude":136.6856107,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.3,"GoogleReviewCount":211},{"ProductId":12152,"Title":"Osteria il Mosto","Price":8000,"CategoryName":"グルメ","Latitude":34.4954482,"Longitude":136.7029453,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.6,"GoogleReviewCount":47},{"ProductId":11645,"Title":"柚 CUCINA NATURALE","Price":8000,"CategoryName":"グルメ","Latitude":34.4933478,"Longitude":136.7155051,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.4,"GoogleReviewCount":101},{"ProductId":10455,"Title":"鉄板フレンチ　La Table d'Aki","Price":13000,"CategoryName":"グルメ","Latitude":34.4697954,"Longitude":136.7157116,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.5,"GoogleReviewCount":62},{"ProductId":7004,"Title":"焼鳥　にかわ","Price":20000,"CategoryName":"グルメ","Latitude":34.4946632,"Longitude":136.7059037,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.5,"GoogleReviewCount":62},{"ProductId":4111,"Title":"伊勢人力車光勢屋","Price":8000,"CategoryName":"その他","Latitude":34.4654879,"Longitude":136.7225309,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.9,"GoogleReviewCount":63},{"ProductId":6979,"Title":"和食 海（伊勢パールピアホテル内）","Price":10800,"CategoryName":"グルメ","Latitude":34.4915923,"Longitude":136.712508,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.5,"GoogleReviewCount":42},{"ProductId":7125,"Title":"料理屋　おくやま","Price":5000,"CategoryName":"グルメ","Latitude":34.4710308,"Longitude":136.7178838,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.3,"GoogleReviewCount":109},{"ProductId":11870,"Title":"洋風ダイニングバー 町家バル","Price":4000,"CategoryName":"グルメ","Latitude":34.4893696,"Longitude":136.7093589,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.2,"GoogleReviewCount":208},{"ProductId":12343,"Title":"双六 料理店","Price":4000,"CategoryName":"グルメ","Latitude":34.5072209,"Longitude":136.6720338,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.4,"GoogleReviewCount":37},{"ProductId":3223,"Title":"海辺の旅館　浜千代館","Price":24000,"CategoryName":"宿泊施設","Latitude":34.5080932,"Longitude":136.782769,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.1,"GoogleReviewCount":313},{"ProductId":3752,"Title":"グランオーシャン伊勢志摩","Price":34000,"CategoryName":"宿泊施設","Latitude":34.4969794,"Longitude":136.8139788,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.1,"GoogleReviewCount":95},{"ProductId":7169,"Title":"和牛石アミ焼肉たまちゃん","Price":6000,"CategoryName":"グルメ","Latitude":34.5096538,"Longitude":136.6500733,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.1,"GoogleReviewCount":83},{"ProductId":7005,"Title":"花菖蒲","Price":6000,"CategoryName":"グルメ","Latitude":34.4929494,"Longitude":136.7016199,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.1,"GoogleReviewCount":65},{"ProductId":11052,"Title":"黒潮ダイニング 花","Price":3500,"CategoryName":"グルメ","Latitude":34.5055556,"Longitude":136.7069444,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4,"GoogleReviewCount":504},{"ProductId":6970,"Title":"Pizzeria&cafe ORSO","Price":2000,"CategoryName":"グルメ","Latitude":34.5045165,"Longitude":136.707314,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4,"GoogleReviewCount":175},{"ProductId":6949,"Title":"うまか味 薩摩","Price":4000,"CategoryName":"グルメ","Latitude":34.5001818,"Longitude":136.706923,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4,"GoogleReviewCount":105},{"ProductId":4227,"Title":"帯結","Price":10000,"CategoryName":"その他","Latitude":34.4865178,"Longitude":136.7112285,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.7,"GoogleReviewCount":19},{"ProductId":4226,"Title":"三重県真珠","Price":3000,"CategoryName":"その他","Latitude":34.5041569,"Longitude":136.7951489,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.2,"GoogleReviewCount":213},{"ProductId":4184,"Title":"松治郎の舗　伊勢おはらい町店","Price":3300,"CategoryName":"その他","Latitude":34.4615463,"Longitude":136.7235557,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.2,"GoogleReviewCount":152},{"ProductId":4256,"Title":"伊勢硝子","Price":5000,"CategoryName":"その他","Latitude":34.5093704,"Longitude":136.6757378,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.8,"GoogleReviewCount":4},{"ProductId":2129,"Title":"素心の宿 大石屋","Price":23000,"CategoryName":"宿泊施設","Latitude":34.508198,"Longitude":136.785877,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.5,"GoogleReviewCount":264},{"ProductId":4185,"Title":"着物レンタル夢小町伊勢店","Price":6500,"CategoryName":"その他","Latitude":34.4613235,"Longitude":136.7226989,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.3,"GoogleReviewCount":18},{"ProductId":11012,"Title":"ホテルキャッスルイン伊勢夫婦岩","Price":12000,"CategoryName":"宿泊施設","Latitude":34.5081,"Longitude":136.781332,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":3.9,"GoogleReviewCount":1501},{"ProductId":4102,"Title":"made in 伊勢","Price":1800,"CategoryName":"その他","Latitude":34.4623009,"Longitude":136.7220691,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":3.6,"GoogleReviewCount":5},{"ProductId":11773,"Title":"名物海老フライ・伊勢海老料理　伊勢大阪屋","Price":2500,"CategoryName":"グルメ","Latitude":34.499662,"Longitude":136.6622957,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":3.7,"GoogleReviewCount":332},{"ProductId":5023,"Title":"伊勢かぐらばリゾート千の杜","Price":23000,"CategoryName":"宿泊施設","Latitude":34.4546453,"Longitude":136.6732659,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":3.8,"GoogleReviewCount":838},{"ProductId":4181,"Title":"伊勢焼陶芸体験工房","Price":2900,"CategoryName":"その他","Latitude":34.4677508,"Longitude":136.7229799,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":3.3,"GoogleReviewCount":16},{"ProductId":4237,"Title":"菊池パール","Price":3000,"CategoryName":"その他","Latitude":34.4989097,"Longitude":136.7406162,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":3.5,"GoogleReviewCount":46},{"ProductId":2127,"Title":"やわらの湯 まるや","Price":19000,"CategoryName":"宿泊施設","Latitude":34.5064902,"Longitude":136.7777663,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4.5,"GoogleReviewCount":37},{"ProductId":7113,"Title":"EN HOTEL Ise","Price":9000,"CategoryName":"宿泊施設","Latitude":34.4920599,"Longitude":136.7131271,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":3.5,"GoogleReviewCount":352},{"ProductId":2236,"Title":"伊勢パールピアホテル","Price":20000,"CategoryName":"宿泊施設","Latitude":34.4917009,"Longitude":136.7125133,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":4,"GoogleReviewCount":967},{"ProductId":2232,"Title":"松阪屋吸霞園","Price":15000,"CategoryName":"宿泊施設","Latitude":34.507974,"Longitude":136.780713,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":3.9,"GoogleReviewCount":43},{"ProductId":2141,"Title":"料理旅館 おく文","Price":15000,"CategoryName":"宿泊施設","Latitude":34.49301,"Longitude":136.700139,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":3.9,"GoogleReviewCount":58},{"ProductId":2239,"Title":"朝日館","Price":17000,"CategoryName":"宿泊施設","Latitude":34.5082703,"Longitude":136.7786817,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":3.9,"GoogleReviewCount":149},{"ProductId":4162,"Title":"パールファルコ 伊勢店","Price":6000,"CategoryName":"その他","Latitude":34.500219,"Longitude":136.747788,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":3.3,"GoogleReviewCount":225},{"ProductId":2271,"Title":"麻野館","Price":12000,"CategoryName":"宿泊施設","Latitude":34.5080268,"Longitude":136.7809939,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":3.6,"GoogleReviewCount":98},{"ProductId":11010,"Title":"ホテルキャッスルイン伊勢","Price":10000,"CategoryName":"宿泊施設","Latitude":34.4953437,"Longitude":136.7201825,"AreaName":"伊勢・鳥羽・相差","ProductPrefectureName":"三重県","GoogleReviewRate":3.5,"GoogleReviewCount":1454}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

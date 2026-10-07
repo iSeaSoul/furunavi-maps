@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>沖縄県うるま市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>沖縄県うるま市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=1710">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":3770,"Title":"マリンアイランド","Price":8000,"CategoryName":"その他","Latitude":26.3197761,"Longitude":127.9156458,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":4.9,"GoogleReviewCount":908},{"ProductId":7863,"Title":"肉や食堂inへんざ","Price":5000,"CategoryName":"グルメ","Latitude":26.3425859,"Longitude":127.9531769,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":4.6,"GoogleReviewCount":565},{"ProductId":14023,"Title":"古民家食堂てぃーらぶい","Price":1500,"CategoryName":"グルメ","Latitude":26.3259928,"Longitude":127.953014,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":4.5,"GoogleReviewCount":784},{"ProductId":4118,"Title":"CAVE OKINAWA","Price":3000,"CategoryName":"その他","Latitude":26.4203893,"Longitude":127.8093241,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":4.3,"GoogleReviewCount":2569},{"ProductId":2807,"Title":"ココガーデンリゾートオキナワ","Price":15000,"CategoryName":"宿泊施設","Latitude":26.4202027,"Longitude":127.8199819,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":4.3,"GoogleReviewCount":863},{"ProductId":2590,"Title":"ホテル浜比嘉島リゾート","Price":11000,"CategoryName":"宿泊施設","Latitude":26.3204997,"Longitude":127.9654235,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":4.3,"GoogleReviewCount":585},{"ProductId":7915,"Title":"うるま ひもの食堂","Price":1000,"CategoryName":"グルメ","Latitude":26.3384207,"Longitude":127.8909088,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":4.4,"GoogleReviewCount":212},{"ProductId":7636,"Title":"丸吉食品","Price":1000,"CategoryName":"グルメ","Latitude":26.3269917,"Longitude":127.9518951,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":4.2,"GoogleReviewCount":776},{"ProductId":3855,"Title":"釣って見つけるぼうけんの国 沖縄　うるまBBQガーデン","Price":3000,"CategoryName":"その他","Latitude":26.4397202,"Longitude":127.8293912,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":4.4,"GoogleReviewCount":449},{"ProductId":3928,"Title":"海ぶどう平安座養殖場","Price":1300,"CategoryName":"その他","Latitude":26.3405514,"Longitude":127.9627839,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":4.6,"GoogleReviewCount":198},{"ProductId":7807,"Title":"割烹酒場 ふく乃屋","Price":5000,"CategoryName":"グルメ","Latitude":26.3561898,"Longitude":127.8350773,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":4.4,"GoogleReviewCount":135},{"ProductId":12928,"Title":"ANAクラウンプラザリゾート沖縄うるまヒルズ","Price":12000,"CategoryName":"宿泊施設","Latitude":26.41768,"Longitude":127.79277,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":4.2,"GoogleReviewCount":497},{"ProductId":7914,"Title":"うるたま","Price":2000,"CategoryName":"グルメ","Latitude":26.3383191,"Longitude":127.890999,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":4.3,"GoogleReviewCount":66},{"ProductId":7868,"Title":"海中茶屋","Price":1000,"CategoryName":"グルメ","Latitude":26.3326029,"Longitude":127.929175,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":4.1,"GoogleReviewCount":573},{"ProductId":3860,"Title":"シーカヤックおきなわ　カモメのジョナサン","Price":10000,"CategoryName":"その他","Latitude":26.3137921,"Longitude":127.9596392,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":4.8,"GoogleReviewCount":34},{"ProductId":3754,"Title":"アクアラインマリンクラブ","Price":8000,"CategoryName":"その他","Latitude":26.345883,"Longitude":127.8693843,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":4.3,"GoogleReviewCount":193},{"ProductId":2537,"Title":"伊計島温泉 AJリゾートアイランド伊計島","Price":8000,"CategoryName":"宿泊施設","Latitude":26.397744,"Longitude":128.001682,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":4,"GoogleReviewCount":1619},{"ProductId":3393,"Title":"totono house 吉本家","Price":17000,"CategoryName":"宿泊施設","Latitude":26.323002,"Longitude":127.9657298,"AreaName":"名護・本部・国頭","ProductPrefectureName":"沖縄県","GoogleReviewRate":5,"GoogleReviewCount":39},{"ProductId":3853,"Title":"新里酒造","Price":3000,"CategoryName":"その他","Latitude":26.3358173,"Longitude":127.8508964,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":4.3,"GoogleReviewCount":27},{"ProductId":5427,"Title":"AJリゾートアイランド伊計島 レストランHIBIS","Price":3000,"CategoryName":"グルメ","Latitude":26.3977357,"Longitude":128.0016889,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":3.7,"GoogleReviewCount":49},{"ProductId":3052,"Title":"伊計別邸　一燈","Price":23000,"CategoryName":"宿泊施設","Latitude":26.3832434,"Longitude":127.9964466,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":4.9,"GoogleReviewCount":24},{"ProductId":4109,"Title":"Mマリンスポーツ企画","Price":13500,"CategoryName":"その他","Latitude":26.3322212,"Longitude":127.9282371,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":0,"GoogleReviewCount":0},{"ProductId":2251,"Title":"413 hamahiga Hotel & Cafe","Price":12000,"CategoryName":"宿泊施設","Latitude":26.3229383,"Longitude":127.9512885,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":4.3,"GoogleReviewCount":150},{"ProductId":7913,"Title":"東海岸BBQTERUMA","Price":4000,"CategoryName":"その他","Latitude":26.3382508,"Longitude":127.8911908,"AreaName":"恩納・読谷・北谷","ProductPrefectureName":"沖縄県","GoogleReviewRate":3.6,"GoogleReviewCount":111}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

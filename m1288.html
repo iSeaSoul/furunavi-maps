@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>島根県出雲市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>島根県出雲市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=1288">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":7959,"Title":"天然温泉 八雲の湯 ドーミーイン出雲","Price":13000,"CategoryName":"宿泊施設","Latitude":35.3601467,"Longitude":132.7564435,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.4,"GoogleReviewCount":1875},{"ProductId":7957,"Title":"お宿 月夜のうさぎ ","Price":25000,"CategoryName":"宿泊施設","Latitude":35.3968086,"Longitude":132.6933794,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.4,"GoogleReviewCount":1850},{"ProductId":7958,"Title":"いにしえの宿 佳雲","Price":35000,"CategoryName":"宿泊施設","Latitude":35.3970989,"Longitude":132.6925606,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.4,"GoogleReviewCount":1027},{"ProductId":2771,"Title":"NIPPONIA出雲平田木綿街道","Price":28000,"CategoryName":"宿泊施設","Latitude":35.4376946,"Longitude":132.8214908,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.8,"GoogleReviewCount":187},{"ProductId":4036,"Title":"NIPPONIA 出雲大社 門前町","Price":30000,"CategoryName":"宿泊施設","Latitude":35.3937548,"Longitude":132.6850621,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.8,"GoogleReviewCount":188},{"ProductId":12942,"Title":"センチュリオンホテル＆スパクラシック出雲","Price":7000,"CategoryName":"宿泊施設","Latitude":35.3624964,"Longitude":132.7559073,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.3,"GoogleReviewCount":568},{"ProductId":10553,"Title":"cafe naka蔵","Price":2000,"CategoryName":"グルメ","Latitude":35.3642527,"Longitude":132.756649,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.3,"GoogleReviewCount":409},{"ProductId":13410,"Title":"ツバメヤ","Price":4500,"CategoryName":"グルメ","Latitude":35.3639806,"Longitude":132.7578399,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.2,"GoogleReviewCount":650},{"ProductId":2780,"Title":"はたご小田温泉","Price":25000,"CategoryName":"宿泊施設","Latitude":35.2805154,"Longitude":132.6231637,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.4,"GoogleReviewCount":157},{"ProductId":11048,"Title":"味処　おかや","Price":6000,"CategoryName":"グルメ","Latitude":35.435315,"Longitude":132.8260572,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.4,"GoogleReviewCount":145},{"ProductId":4407,"Title":"ガラス工房 Izumo","Price":4400,"CategoryName":"その他","Latitude":35.3570117,"Longitude":132.795195,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.7,"GoogleReviewCount":132},{"ProductId":7768,"Title":"IZUMO HOTEL THE CLIFF(イズモ ホテル ザ クリフ)","Price":35000,"CategoryName":"宿泊施設","Latitude":35.3044709,"Longitude":132.6458388,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.4,"GoogleReviewCount":106},{"ProductId":2783,"Title":"日の出館","Price":14000,"CategoryName":"宿泊施設","Latitude":35.3951708,"Longitude":132.6869141,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.4,"GoogleReviewCount":80},{"ProductId":2816,"Title":"湯の川温泉 湖静荘","Price":14000,"CategoryName":"宿泊施設","Latitude":35.3967458,"Longitude":132.8742549,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.3,"GoogleReviewCount":92},{"ProductId":3938,"Title":"グランピングベースIZUMO","Price":26000,"CategoryName":"宿泊施設","Latitude":35.3238302,"Longitude":132.6779064,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.4,"GoogleReviewCount":29},{"ProductId":2808,"Title":"湯元湯の川","Price":19000,"CategoryName":"宿泊施設","Latitude":35.3859056,"Longitude":132.8721242,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.1,"GoogleReviewCount":321},{"ProductId":2764,"Title":"出雲大社 御師の宿 ますや旅館","Price":15000,"CategoryName":"宿泊施設","Latitude":35.3986607,"Longitude":132.6828313,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.1,"GoogleReviewCount":146},{"ProductId":4649,"Title":"茶室　松籟亭","Price":500,"CategoryName":"グルメ","Latitude":35.3821903,"Longitude":132.7146405,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.4,"GoogleReviewCount":9},{"ProductId":3051,"Title":"湖畔の温泉宿 くにびき","Price":15000,"CategoryName":"宿泊施設","Latitude":35.324105,"Longitude":132.6773364,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4,"GoogleReviewCount":361},{"ProductId":10409,"Title":"おつまみ研究所大社門前ラボと日本ぜんざい学会壱号店","Price":800,"CategoryName":"グルメ","Latitude":35.3953428,"Longitude":132.6865351,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":3.9,"GoogleReviewCount":89},{"ProductId":4491,"Title":"坂根屋入南店　café kissa＆co","Price":2400,"CategoryName":"その他","Latitude":35.3866895,"Longitude":132.7126652,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.1,"GoogleReviewCount":379},{"ProductId":4411,"Title":"大社観光ぶどう園","Price":1500,"CategoryName":"その他","Latitude":35.3790112,"Longitude":132.6988153,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.2,"GoogleReviewCount":56},{"ProductId":4446,"Title":"出雲大社前レンタルきもの「ご縁スタイル」","Price":5300,"CategoryName":"その他","Latitude":35.3949821,"Longitude":132.6875341,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.3,"GoogleReviewCount":23},{"ProductId":4410,"Title":"GuestSalon　椿舎　つばきしゃ","Price":3000,"CategoryName":"その他","Latitude":35.4403238,"Longitude":132.6859703,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":5,"GoogleReviewCount":2},{"ProductId":4445,"Title":"ダイビングステーション　AQUA工房","Price":15300,"CategoryName":"その他","Latitude":35.4296873,"Longitude":132.6284093,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.3,"GoogleReviewCount":16},{"ProductId":14574,"Title":"出雲日和 堀川別邸 by HIYORISTAY","Price":30000,"CategoryName":"宿泊施設","Latitude":35.3938548,"Longitude":132.689321,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.9,"GoogleReviewCount":17},{"ProductId":4648,"Title":"出雲文化伝承館","Price":1500,"CategoryName":"その他","Latitude":35.3818511,"Longitude":132.7149069,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4,"GoogleReviewCount":423},{"ProductId":4470,"Title":"農事組合法人あかつきファーム今在家","Price":2500,"CategoryName":"その他","Latitude":35.4015742,"Longitude":132.8043805,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4,"GoogleReviewCount":36},{"ProductId":14572,"Title":"IZUMO DOGS by HIYORISTAY","Price":35000,"CategoryName":"宿泊施設","Latitude":35.3938121,"Longitude":132.6892586,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.7,"GoogleReviewCount":7},{"ProductId":14573,"Title":"出雲和結庵 by HIYORISTAY","Price":15000,"CategoryName":"宿泊施設","Latitude":35.3936273,"Longitude":132.6886377,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":4.5,"GoogleReviewCount":4},{"ProductId":14583,"Title":"出雲日和 by HIYORISTAY","Price":25000,"CategoryName":"宿泊施設","Latitude":35.39791,"Longitude":132.6832259,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":3.7,"GoogleReviewCount":6},{"ProductId":2763,"Title":"天然温泉の湯　四季荘","Price":12000,"CategoryName":"宿泊施設","Latitude":35.38201,"Longitude":132.874137,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":3.6,"GoogleReviewCount":522},{"ProductId":4437,"Title":"（日帰り温泉）天然温泉の湯　四季荘","Price":700,"CategoryName":"その他","Latitude":35.38201,"Longitude":132.874137,"AreaName":"松江・玉造・出雲","ProductPrefectureName":"島根県","GoogleReviewRate":3.6,"GoogleReviewCount":522}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

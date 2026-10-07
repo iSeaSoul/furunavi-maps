@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>滋賀県高島市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>滋賀県高島市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=1079">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":12398,"Title":"サンクチュアリコート琵琶湖","Price":27000,"CategoryName":"宿泊施設","Latitude":35.3076755,"Longitude":136.0439087,"AreaName":"近江今津・マキノ","ProductPrefectureName":"滋賀県","GoogleReviewRate":4.5,"GoogleReviewCount":212},{"ProductId":4700,"Title":"GLAMPING&CAFÉ　MUKU（グランピングカフェ　ムク）","Price":30000,"CategoryName":"宿泊施設","Latitude":35.4698981,"Longitude":136.0364391,"AreaName":"近江今津・マキノ","ProductPrefectureName":"滋賀県","GoogleReviewRate":4.4,"GoogleReviewCount":111},{"ProductId":8011,"Title":"パラディゾ","Price":5000,"CategoryName":"グルメ","Latitude":35.2945858,"Longitude":135.8867278,"AreaName":"近江今津・マキノ","ProductPrefectureName":"滋賀県","GoogleReviewRate":4.4,"GoogleReviewCount":87},{"ProductId":3054,"Title":"椿聚舎","Price":28000,"CategoryName":"宿泊施設","Latitude":35.5034222,"Longitude":136.0432366,"AreaName":"近江今津・マキノ","ProductPrefectureName":"滋賀県","GoogleReviewRate":5,"GoogleReviewCount":5},{"ProductId":4164,"Title":"白鬚神社参拝カヌーGOODTIMES","Price":5500,"CategoryName":"その他","Latitude":35.2788161,"Longitude":136.0183496,"AreaName":"近江今津・マキノ","ProductPrefectureName":"滋賀県","GoogleReviewRate":4.7,"GoogleReviewCount":59},{"ProductId":2518,"Title":"奥琵琶湖四季亭","Price":23000,"CategoryName":"宿泊施設","Latitude":35.4641324,"Longitude":136.07925,"AreaName":"近江今津・マキノ","ProductPrefectureName":"滋賀県","GoogleReviewRate":4.2,"GoogleReviewCount":24},{"ProductId":4187,"Title":"フライボード琵琶湖　白ひげビーチ店","Price":5000,"CategoryName":"その他","Latitude":35.281329,"Longitude":136.018457,"AreaName":"近江今津・マキノ","ProductPrefectureName":"滋賀県","GoogleReviewRate":4.4,"GoogleReviewCount":112},{"ProductId":4263,"Title":"BLUE BIKE&SOAP","Price":2000,"CategoryName":"その他","Latitude":35.2973853,"Longitude":136.0122138,"AreaName":"近江今津・マキノ","ProductPrefectureName":"滋賀県","GoogleReviewRate":4.7,"GoogleReviewCount":32},{"ProductId":12120,"Title":"湖畔のレストランあしみ（今津サンブリッジホテル内）","Price":4000,"CategoryName":"グルメ","Latitude":35.4057163,"Longitude":136.039024,"AreaName":"近江今津・マキノ","ProductPrefectureName":"滋賀県","GoogleReviewRate":4,"GoogleReviewCount":29},{"ProductId":4695,"Title":"SUP GARDEN","Price":5000,"CategoryName":"その他","Latitude":35.2681454,"Longitude":135.9938073,"AreaName":"近江今津・マキノ","ProductPrefectureName":"滋賀県","GoogleReviewRate":0,"GoogleReviewCount":0},{"ProductId":2155,"Title":"STAGEX高島","Price":41000,"CategoryName":"宿泊施設","Latitude":35.3504932,"Longitude":136.0669881,"AreaName":"近江今津・マキノ","ProductPrefectureName":"滋賀県","GoogleReviewRate":4,"GoogleReviewCount":867},{"ProductId":4474,"Title":"ビワコProウィンドサーフィンスクール　ウェスト","Price":10000,"CategoryName":"その他","Latitude":35.3041297,"Longitude":136.0407664,"AreaName":"近江今津・マキノ","ProductPrefectureName":"滋賀県","GoogleReviewRate":4.7,"GoogleReviewCount":9},{"ProductId":4262,"Title":"染色工房いふう","Price":2200,"CategoryName":"その他","Latitude":35.2957619,"Longitude":136.0130698,"AreaName":"近江今津・マキノ","ProductPrefectureName":"滋賀県","GoogleReviewRate":4.8,"GoogleReviewCount":6},{"ProductId":7648,"Title":"びわ湖畔リゾート白浜荘","Price":15000,"CategoryName":"宿泊施設","Latitude":35.3054063,"Longitude":136.0367666,"AreaName":"近江今津・マキノ","ProductPrefectureName":"滋賀県","GoogleReviewRate":3.9,"GoogleReviewCount":198},{"ProductId":4261,"Title":"蝋燭町キャンドル工房","Price":2200,"CategoryName":"その他","Latitude":35.2959663,"Longitude":136.0123392,"AreaName":"近江今津・マキノ","ProductPrefectureName":"滋賀県","GoogleReviewRate":4.2,"GoogleReviewCount":19},{"ProductId":2553,"Title":"今津サンブリッジホテル","Price":12000,"CategoryName":"宿泊施設","Latitude":35.405717,"Longitude":136.0390253,"AreaName":"近江今津・マキノ","ProductPrefectureName":"滋賀県","GoogleReviewRate":3.9,"GoogleReviewCount":610},{"ProductId":4165,"Title":"滋賀スノーシュー・雪板GOODTIMES","Price":5500,"CategoryName":"その他","Latitude":35.4876053,"Longitude":135.9658039,"AreaName":"近江今津・マキノ","ProductPrefectureName":"滋賀県","GoogleReviewRate":0,"GoogleReviewCount":0},{"ProductId":13473,"Title":"グリーンパーク想い出の森","Price":48000,"CategoryName":"宿泊施設","Latitude":35.3429839,"Longitude":135.9205905,"AreaName":"近江今津・マキノ","ProductPrefectureName":"滋賀県","GoogleReviewRate":4.1,"GoogleReviewCount":909},{"ProductId":4107,"Title":"体験交流センターゆめの","Price":4400,"CategoryName":"その他","Latitude":35.4189571,"Longitude":135.9996962,"AreaName":"近江今津・マキノ","ProductPrefectureName":"滋賀県","GoogleReviewRate":3.8,"GoogleReviewCount":39},{"ProductId":2370,"Title":"奥琵琶湖マキノグランドパークホテル","Price":15000,"CategoryName":"宿泊施設","Latitude":35.4539489,"Longitude":136.0598144,"AreaName":"大津・おごと","ProductPrefectureName":"滋賀県","GoogleReviewRate":3.8,"GoogleReviewCount":619},{"ProductId":4473,"Title":"ビワコマリンスポーツオートキャンプ場","Price":10000,"CategoryName":"その他","Latitude":35.3042802,"Longitude":136.0403443,"AreaName":"近江今津・マキノ","ProductPrefectureName":"滋賀県","GoogleReviewRate":3.8,"GoogleReviewCount":203}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

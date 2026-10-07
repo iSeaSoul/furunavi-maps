@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>和歌山県高野町 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>和歌山県高野町</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=1249">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":2425,"Title":"高野山 宿坊 恵光院","Price":15000,"CategoryName":"宿泊施設","Latitude":34.2123154,"Longitude":135.5938164,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.5,"GoogleReviewCount":802},{"ProductId":2520,"Title":"高野山 別格本山 清浄心院","Price":13000,"CategoryName":"宿泊施設","Latitude":34.2139373,"Longitude":135.595072,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.6,"GoogleReviewCount":436},{"ProductId":2437,"Title":"宿坊 不動院","Price":20000,"CategoryName":"宿泊施設","Latitude":34.2113212,"Longitude":135.5906969,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.7,"GoogleReviewCount":228},{"ProductId":2429,"Title":"常喜院","Price":19000,"CategoryName":"宿泊施設","Latitude":34.2130029,"Longitude":135.5825601,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.6,"GoogleReviewCount":266},{"ProductId":2426,"Title":"西禅院","Price":15000,"CategoryName":"宿泊施設","Latitude":34.2143502,"Longitude":135.5796117,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.5,"GoogleReviewCount":361},{"ProductId":4772,"Title":"角濱ごまとうふ総本舗 大門店","Price":2000,"CategoryName":"グルメ","Latitude":34.212834,"Longitude":135.5764014,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.3,"GoogleReviewCount":849},{"ProductId":2430,"Title":"宿坊 櫻池院","Price":11000,"CategoryName":"宿泊施設","Latitude":34.2118194,"Longitude":135.5787533,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.5,"GoogleReviewCount":273},{"ProductId":11726,"Title":"宿坊 普賢院","Price":19000,"CategoryName":"宿泊施設","Latitude":34.213808,"Longitude":135.5868783,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.6,"GoogleReviewCount":166},{"ProductId":4875,"Title":"胡麻豆腐　濱田屋","Price":2000,"CategoryName":"グルメ","Latitude":34.211656,"Longitude":135.5875921,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.3,"GoogleReviewCount":643},{"ProductId":2610,"Title":"高野山 別格本山 総持院","Price":22000,"CategoryName":"宿泊施設","Latitude":34.2137828,"Longitude":135.5818366,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.4,"GoogleReviewCount":327},{"ProductId":2432,"Title":"報恩院","Price":12000,"CategoryName":"宿泊施設","Latitude":34.2121609,"Longitude":135.577519,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.6,"GoogleReviewCount":128},{"ProductId":2435,"Title":"光明院","Price":12000,"CategoryName":"宿泊施設","Latitude":34.2115097,"Longitude":135.5940087,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.7,"GoogleReviewCount":58},{"ProductId":2439,"Title":"金剛三昧院","Price":15000,"CategoryName":"宿泊施設","Latitude":34.209792,"Longitude":135.5874511,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.2,"GoogleReviewCount":678},{"ProductId":2466,"Title":"普門院","Price":23000,"CategoryName":"宿泊施設","Latitude":34.2144467,"Longitude":135.5868274,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.5,"GoogleReviewCount":89},{"ProductId":15230,"Title":"中央食堂 さんぼう","Price":2500,"CategoryName":"グルメ","Latitude":34.2137247,"Longitude":135.5861883,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.2,"GoogleReviewCount":489},{"ProductId":14809,"Title":"高野山　宿坊　熊谷寺","Price":15000,"CategoryName":"宿泊施設","Latitude":34.212716,"Longitude":135.5945183,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.3,"GoogleReviewCount":175},{"ProductId":2436,"Title":"本覺院","Price":22000,"CategoryName":"宿泊施設","Latitude":34.2154692,"Longitude":135.5871707,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.4,"GoogleReviewCount":97},{"ProductId":2427,"Title":"宿坊 遍照尊院","Price":13000,"CategoryName":"宿泊施設","Latitude":34.211768,"Longitude":135.58018,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.3,"GoogleReviewCount":137},{"ProductId":4677,"Title":"森下商店総本舗","Price":3000,"CategoryName":"グルメ","Latitude":34.2129632,"Longitude":135.5874628,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.3,"GoogleReviewCount":117},{"ProductId":4699,"Title":"角濱ごまとうふ総本舗 小田原店","Price":2000,"CategoryName":"グルメ","Latitude":34.2128794,"Longitude":135.5887934,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.2,"GoogleReviewCount":262},{"ProductId":2547,"Title":"明王院","Price":16000,"CategoryName":"宿泊施設","Latitude":34.2148759,"Longitude":135.5803787,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.4,"GoogleReviewCount":64},{"ProductId":4872,"Title":"上きしや　高野店","Price":1300,"CategoryName":"グルメ","Latitude":34.2127822,"Longitude":135.5934586,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.3,"GoogleReviewCount":58},{"ProductId":4670,"Title":"光海珈琲","Price":2000,"CategoryName":"グルメ","Latitude":34.212859,"Longitude":135.5941053,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.1,"GoogleReviewCount":423},{"ProductId":11667,"Title":"別格本山 西南院","Price":30000,"CategoryName":"宿泊施設","Latitude":34.2126413,"Longitude":135.5748689,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.1,"GoogleReviewCount":110},{"ProductId":4706,"Title":"高野蕎麦ここね 本店","Price":2000,"CategoryName":"グルメ","Latitude":34.21231,"Longitude":135.5766315,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":4.1,"GoogleReviewCount":74},{"ProductId":5859,"Title":"Shojin Dining 桐宝珠","Price":2000,"CategoryName":"グルメ","Latitude":34.2135274,"Longitude":135.5953121,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":3.9,"GoogleReviewCount":32},{"ProductId":4871,"Title":"上きしや　花坂店","Price":1300,"CategoryName":"グルメ","Latitude":34.2168693,"Longitude":135.5310754,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":3.9,"GoogleReviewCount":319},{"ProductId":2431,"Title":"宿坊高野山赤松院","Price":13000,"CategoryName":"宿泊施設","Latitude":34.2132584,"Longitude":135.5941881,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":3.9,"GoogleReviewCount":319},{"ProductId":2531,"Title":"高野山宝善院","Price":13000,"CategoryName":"宿泊施設","Latitude":34.2132565,"Longitude":135.5949915,"AreaName":"高野山","ProductPrefectureName":"和歌山県","GoogleReviewRate":3.7,"GoogleReviewCount":49}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

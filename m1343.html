@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>広島県廿日市市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>広島県廿日市市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=1343">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":14113,"Title":"ホテル菊乃家","Price":33000,"CategoryName":"宿泊施設","Latitude":34.2942435,"Longitude":132.3214095,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.5,"GoogleReviewCount":733},{"ProductId":5109,"Title":"錦水館","Price":50000,"CategoryName":"宿泊施設","Latitude":34.298725,"Longitude":132.321383,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.4,"GoogleReviewCount":1102},{"ProductId":5108,"Title":"ホテル宮島別荘","Price":28000,"CategoryName":"宿泊施設","Latitude":34.302007,"Longitude":132.323342,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.6,"GoogleReviewCount":740},{"ProductId":11321,"Title":"グランヴィリオホテル宮島 -和蔵-","Price":11000,"CategoryName":"宿泊施設","Latitude":34.3050784,"Longitude":132.2980028,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.5,"GoogleReviewCount":959},{"ProductId":5054,"Title":"okeikoJapan宮島","Price":2000,"CategoryName":"その他","Latitude":34.3012483,"Longitude":132.3252227,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.9,"GoogleReviewCount":394},{"ProductId":5173,"Title":"焼がきのはやし","Price":4000,"CategoryName":"グルメ","Latitude":34.2983993,"Longitude":132.3215942,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.3,"GoogleReviewCount":2076},{"ProductId":5230,"Title":"庭園の宿 石亭","Price":49000,"CategoryName":"宿泊施設","Latitude":34.2731093,"Longitude":132.2529458,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.4,"GoogleReviewCount":472},{"ProductId":15059,"Title":"宮島グランドホテル有もと","Price":38000,"CategoryName":"宿泊施設","Latitude":34.295984,"Longitude":132.3216023,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.4,"GoogleReviewCount":961},{"ProductId":5067,"Title":"宮島離れの宿IBUKU 別邸","Price":40000,"CategoryName":"宿泊施設","Latitude":34.2712488,"Longitude":132.2546202,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.5,"GoogleReviewCount":223},{"ProductId":14298,"Title":"揚げもみじ紅葉堂　本店","Price":500,"CategoryName":"グルメ","Latitude":34.2977872,"Longitude":132.320873,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.3,"GoogleReviewCount":1478},{"ProductId":5066,"Title":"宮島離れの宿IBUKU 本館","Price":35000,"CategoryName":"宿泊施設","Latitude":34.2712488,"Longitude":132.2546202,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.5,"GoogleReviewCount":223},{"ProductId":14299,"Title":"MAGOJii café&gallery","Price":800,"CategoryName":"グルメ","Latitude":34.2958386,"Longitude":132.3183634,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.7,"GoogleReviewCount":99},{"ProductId":5046,"Title":"SUP宮島","Price":10000,"CategoryName":"その他","Latitude":34.3037724,"Longitude":132.3343182,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.9,"GoogleReviewCount":100},{"ProductId":5599,"Title":"MIYAJIMA CAFE","Price":2000,"CategoryName":"グルメ","Latitude":34.3105291,"Longitude":132.3045187,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.4,"GoogleReviewCount":153},{"ProductId":5069,"Title":"フォレストアドベンチャー・広島","Price":3800,"CategoryName":"その他","Latitude":34.4811985,"Longitude":132.1740907,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.5,"GoogleReviewCount":266},{"ProductId":5098,"Title":"いろりの湯宿　別邸　藤屋","Price":40000,"CategoryName":"宿泊施設","Latitude":34.2845533,"Longitude":132.2630524,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.8,"GoogleReviewCount":31},{"ProductId":5055,"Title":"みやじま紅葉の賀","Price":8800,"CategoryName":"その他","Latitude":34.2991862,"Longitude":132.3219907,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.9,"GoogleReviewCount":59},{"ProductId":14273,"Title":"揚げもみじ紅葉堂　etto店","Price":500,"CategoryName":"グルメ","Latitude":34.3115339,"Longitude":132.3055947,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.5,"GoogleReviewCount":46},{"ProductId":14269,"Title":"揚げもみじ紅葉堂　宮島口店","Price":500,"CategoryName":"グルメ","Latitude":34.3110955,"Longitude":132.3045298,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.7,"GoogleReviewCount":20},{"ProductId":5058,"Title":"暁輔バーガー","Price":2000,"CategoryName":"グルメ","Latitude":34.3551284,"Longitude":132.3194709,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.2,"GoogleReviewCount":167},{"ProductId":5224,"Title":"地元のごちそう 自然のめぐみキッチン","Price":4000,"CategoryName":"グルメ","Latitude":34.3286449,"Longitude":132.309145,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.3,"GoogleReviewCount":68},{"ProductId":5154,"Title":"国民宿舎みやじま杜の宿","Price":20000,"CategoryName":"宿泊施設","Latitude":34.2950388,"Longitude":132.3148269,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.1,"GoogleReviewCount":558},{"ProductId":14296,"Title":"揚げもみじ紅葉堂　弐番屋","Price":500,"CategoryName":"グルメ","Latitude":34.2985161,"Longitude":132.3216828,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.1,"GoogleReviewCount":378},{"ProductId":5417,"Title":"湯屋わたや","Price":2000,"CategoryName":"グルメ","Latitude":34.2709798,"Longitude":132.2549361,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.2,"GoogleReviewCount":69},{"ProductId":5600,"Title":"茶屋わたや","Price":2500,"CategoryName":"グルメ","Latitude":34.3106523,"Longitude":132.304803,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.1,"GoogleReviewCount":257},{"ProductId":5063,"Title":"レンタルきもの　みやじま小町","Price":6000,"CategoryName":"その他","Latitude":34.2994678,"Longitude":132.3222796,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.6,"GoogleReviewCount":49},{"ProductId":14293,"Title":"揚げもみじ紅葉堂　海岸通り店","Price":500,"CategoryName":"グルメ","Latitude":34.2993612,"Longitude":132.3213962,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.1,"GoogleReviewCount":36},{"ProductId":8933,"Title":"女鹿平温泉クヴェーレ吉和","Price":13000,"CategoryName":"宿泊施設","Latitude":34.4980753,"Longitude":132.1439452,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4,"GoogleReviewCount":257},{"ProductId":5348,"Title":"OFFSHORE RESTAURANT HANAIKADA","Price":8000,"CategoryName":"グルメ","Latitude":34.2816716,"Longitude":132.2699072,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":0,"GoogleReviewCount":0},{"ProductId":5176,"Title":"宮島コーラルホテル","Price":16000,"CategoryName":"宿泊施設","Latitude":34.3105392,"Longitude":132.3046251,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4,"GoogleReviewCount":1488},{"ProductId":5061,"Title":"みやじまガラス工房　Fizz　Glass","Price":3600,"CategoryName":"その他","Latitude":34.2995139,"Longitude":132.3218776,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":5,"GoogleReviewCount":11},{"ProductId":5060,"Title":"HEM'S HOTEL","Price":17000,"CategoryName":"宿泊施設","Latitude":34.2991641,"Longitude":132.3232627,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.9,"GoogleReviewCount":53},{"ProductId":5078,"Title":"宮島手づくり工房","Price":500,"CategoryName":"その他","Latitude":34.2997199,"Longitude":132.3220251,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.4,"GoogleReviewCount":34},{"ProductId":5077,"Title":"川原圭斎窯","Price":4000,"CategoryName":"その他","Latitude":34.3106988,"Longitude":132.3040527,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.7,"GoogleReviewCount":7},{"ProductId":5072,"Title":"グローバルリゾート　ONO de LUNE","Price":6000,"CategoryName":"宿泊施設","Latitude":34.2868294,"Longitude":132.2774896,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":3.8,"GoogleReviewCount":222},{"ProductId":5153,"Title":"島田水産","Price":2200,"CategoryName":"その他","Latitude":34.3057139,"Longitude":132.2987616,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4,"GoogleReviewCount":1367},{"ProductId":5068,"Title":"県立もみのき森林公園「もみのき荘」","Price":10000,"CategoryName":"宿泊施設","Latitude":34.4827944,"Longitude":132.1764091,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4,"GoogleReviewCount":512},{"ProductId":5345,"Title":"エルベ","Price":44000,"CategoryName":"宿泊施設","Latitude":34.2817164,"Longitude":132.270557,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":4.9,"GoogleReviewCount":9},{"ProductId":14454,"Title":"リブマックスリゾート宮浜温泉Ocean","Price":35000,"CategoryName":"宿泊施設","Latitude":34.2716737,"Longitude":132.2523477,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":3.8,"GoogleReviewCount":568},{"ProductId":5073,"Title":"グローバルリゾート　弥山","Price":6000,"CategoryName":"宿泊施設","Latitude":34.2975997,"Longitude":132.2870224,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":3.4,"GoogleReviewCount":134},{"ProductId":14529,"Title":"リブマックスリゾート安芸 宮浜温泉","Price":28000,"CategoryName":"宿泊施設","Latitude":34.2714977,"Longitude":132.2528484,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":3.5,"GoogleReviewCount":289},{"ProductId":5177,"Title":"（日帰り温泉）天然温泉　宮浜　べにまんさくの湯","Price":2500,"CategoryName":"その他","Latitude":34.2709798,"Longitude":132.2549361,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":3.7,"GoogleReviewCount":1177},{"ProductId":14511,"Title":"リブマックスリゾート安芸宮島","Price":30000,"CategoryName":"宿泊施設","Latitude":34.2986705,"Longitude":132.3239672,"AreaName":"広島・宮島","ProductPrefectureName":"広島県","GoogleReviewRate":3.1,"GoogleReviewCount":1004}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>北海道富良野市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>北海道富良野市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=29">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":7956,"Title":"天然温泉 紫雲の湯 ラビスタ富良野ヒルズ","Price":15000,"CategoryName":"宿泊施設","Latitude":43.3490504,"Longitude":142.3894479,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.5,"GoogleReviewCount":1563},{"ProductId":14147,"Title":"てっぱん・お好み焼　まさ屋","Price":2000,"CategoryName":"グルメ","Latitude":43.344351,"Longitude":142.389163,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.5,"GoogleReviewCount":1232},{"ProductId":10590,"Title":"餃子専門店 SHIRONA","Price":1000,"CategoryName":"グルメ","Latitude":43.3467703,"Longitude":142.3891507,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.7,"GoogleReviewCount":507},{"ProductId":13656,"Title":"Pizza製作所zizi","Price":3500,"CategoryName":"グルメ","Latitude":43.3493787,"Longitude":142.3954815,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.7,"GoogleReviewCount":236},{"ProductId":9300,"Title":"レストラン北峯舎","Price":1500,"CategoryName":"グルメ","Latitude":43.318231,"Longitude":142.3676149,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.5,"GoogleReviewCount":290},{"ProductId":4329,"Title":"ホテルムニン富良野","Price":36000,"CategoryName":"宿泊施設","Latitude":43.3426865,"Longitude":142.364441,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.4,"GoogleReviewCount":337},{"ProductId":8065,"Title":"盆賊衆ﾎﾞﾝｿﾞｸ","Price":2000,"CategoryName":"グルメ","Latitude":43.3529272,"Longitude":142.3902936,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.4,"GoogleReviewCount":214},{"ProductId":11632,"Title":"アートハウス","Price":50000,"CategoryName":"宿泊施設","Latitude":43.3382517,"Longitude":142.3616408,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.9,"GoogleReviewCount":41},{"ProductId":11386,"Title":"我が家","Price":2000,"CategoryName":"グルメ","Latitude":43.3453112,"Longitude":142.3889861,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.6,"GoogleReviewCount":88},{"ProductId":9219,"Title":"富良野とみ川","Price":1100,"CategoryName":"グルメ","Latitude":43.301964,"Longitude":142.5243064,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.1,"GoogleReviewCount":463},{"ProductId":10353,"Title":"唯我独尊","Price":2000,"CategoryName":"グルメ","Latitude":43.344792,"Longitude":142.3894602,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.1,"GoogleReviewCount":2977},{"ProductId":11387,"Title":"シモゾノ珈琲","Price":800,"CategoryName":"グルメ","Latitude":43.3454356,"Longitude":142.3891167,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.6,"GoogleReviewCount":32},{"ProductId":10315,"Title":"ふらの和食 すずかけ","Price":3000,"CategoryName":"グルメ","Latitude":43.3426465,"Longitude":142.387191,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.2,"GoogleReviewCount":232},{"ProductId":3820,"Title":"富良野ナチュラクスホテル","Price":12000,"CategoryName":"宿泊施設","Latitude":43.347599,"Longitude":142.3901575,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.1,"GoogleReviewCount":870},{"ProductId":9220,"Title":"富川製麵所","Price":1100,"CategoryName":"グルメ","Latitude":43.3452269,"Longitude":142.3882962,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.1,"GoogleReviewCount":723},{"ProductId":11630,"Title":"カクプレイス","Price":50000,"CategoryName":"宿泊施設","Latitude":43.3439392,"Longitude":142.3669554,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.6,"GoogleReviewCount":14},{"ProductId":10658,"Title":"京寿司御食事処　池田屋","Price":2000,"CategoryName":"グルメ","Latitude":43.3476321,"Longitude":142.3867751,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.1,"GoogleReviewCount":233},{"ProductId":10027,"Title":"カフェ　いつか富良野へ","Price":2000,"CategoryName":"グルメ","Latitude":43.3320432,"Longitude":142.3619691,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.2,"GoogleReviewCount":56},{"ProductId":12874,"Title":"ヤキトリツヨシ 富良野店","Price":3000,"CategoryName":"グルメ","Latitude":43.3453583,"Longitude":142.3884484,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4,"GoogleReviewCount":87},{"ProductId":4363,"Title":"森のダイニング（ホテルナトゥールヴァルト富良野）","Price":5000,"CategoryName":"グルメ","Latitude":43.342531,"Longitude":142.360797,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4,"GoogleReviewCount":1144},{"ProductId":4316,"Title":"ホテルナトゥールヴァルト富良野","Price":25000,"CategoryName":"宿泊施設","Latitude":43.342531,"Longitude":142.360797,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4,"GoogleReviewCount":1144},{"ProductId":10351,"Title":"山の独尊","Price":4000,"CategoryName":"グルメ","Latitude":43.345067,"Longitude":142.362649,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":3.9,"GoogleReviewCount":38},{"ProductId":3821,"Title":"石邸富良野","Price":50000,"CategoryName":"宿泊施設","Latitude":43.346066,"Longitude":142.3906,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.9,"GoogleReviewCount":18},{"ProductId":11675,"Title":"ホテルふらのヴェルデ","Price":25000,"CategoryName":"宿泊施設","Latitude":43.3708111,"Longitude":142.333467,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.6,"GoogleReviewCount":25},{"ProductId":11638,"Title":"チセフクロウ","Price":160000,"CategoryName":"宿泊施設","Latitude":43.3220934,"Longitude":142.3629565,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":5,"GoogleReviewCount":8},{"ProductId":11641,"Title":"富良野ロッジ10","Price":160000,"CategoryName":"宿泊施設","Latitude":43.3374228,"Longitude":142.361527,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":4.5,"GoogleReviewCount":16},{"ProductId":11644,"Title":"Shochikubai","Price":150000,"CategoryName":"宿泊施設","Latitude":43.3374654,"Longitude":142.3617682,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":5,"GoogleReviewCount":1},{"ProductId":11646,"Title":"ワイルドウッド","Price":150000,"CategoryName":"宿泊施設","Latitude":43.3376534,"Longitude":142.3618486,"AreaName":"富良野・サホロ・トマム","ProductPrefectureName":"北海道","GoogleReviewRate":0,"GoogleReviewCount":0}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

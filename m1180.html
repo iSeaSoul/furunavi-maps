@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>兵庫県南あわじ市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>兵庫県南あわじ市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=1180">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":8404,"Title":"ホテルニューアワジ別邸 あわじ浜離宮","Price":22000,"CategoryName":"宿泊施設","Latitude":34.3370017,"Longitude":134.7342033,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.4,"GoogleReviewCount":767},{"ProductId":8403,"Title":"ホテルニューアワジ プラザ淡路島","Price":20000,"CategoryName":"宿泊施設","Latitude":34.2263169,"Longitude":134.7048804,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.2,"GoogleReviewCount":1240},{"ProductId":2195,"Title":"サンセットビューホテル けひの海","Price":30000,"CategoryName":"宿泊施設","Latitude":34.3362379,"Longitude":134.733714,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.4,"GoogleReviewCount":313},{"ProductId":15273,"Title":"ぬか酵素Sun燦","Price":3900,"CategoryName":"その他","Latitude":34.3241282,"Longitude":134.838378,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.7,"GoogleReviewCount":331},{"ProductId":2119,"Title":"休暇村南淡路","Price":20000,"CategoryName":"宿泊施設","Latitude":34.2456763,"Longitude":134.7047732,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.1,"GoogleReviewCount":2081},{"ProductId":4403,"Title":"じゃのひれSUP","Price":6000,"CategoryName":"その他","Latitude":34.2424024,"Longitude":134.7151558,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.9,"GoogleReviewCount":179},{"ProductId":3810,"Title":"ホテルアナガ","Price":30000,"CategoryName":"宿泊施設","Latitude":34.2716355,"Longitude":134.6650356,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.4,"GoogleReviewCount":448},{"ProductId":2194,"Title":"淡路島うずしお温泉 うめ丸","Price":25000,"CategoryName":"宿泊施設","Latitude":34.27383,"Longitude":134.666398,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.1,"GoogleReviewCount":1119},{"ProductId":8406,"Title":"湊小宿 海の薫とAWAJISHIMA","Price":19000,"CategoryName":"宿泊施設","Latitude":34.2571002,"Longitude":134.7208462,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.4,"GoogleReviewCount":288},{"ProductId":2549,"Title":"ヴィラオルティージャ","Price":15000,"CategoryName":"宿泊施設","Latitude":34.3485563,"Longitude":134.7398462,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.4,"GoogleReviewCount":138},{"ProductId":8045,"Title":"活魚割烹 紅","Price":10000,"CategoryName":"グルメ","Latitude":34.301154,"Longitude":134.768731,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.4,"GoogleReviewCount":85},{"ProductId":11984,"Title":"心鮮料理 万代","Price":7500,"CategoryName":"グルメ","Latitude":34.2579147,"Longitude":134.7230536,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.2,"GoogleReviewCount":280},{"ProductId":8407,"Title":"あわじ浜離宮 別荘 鐸海","Price":30000,"CategoryName":"宿泊施設","Latitude":34.3377644,"Longitude":134.7345894,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.3,"GoogleReviewCount":120},{"ProductId":4280,"Title":"淡路じゃのひれ乗馬クラブ","Price":2000,"CategoryName":"その他","Latitude":34.239446,"Longitude":134.7134779,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.7,"GoogleReviewCount":72},{"ProductId":10282,"Title":"寿司 一作","Price":6000,"CategoryName":"グルメ","Latitude":34.2545657,"Longitude":134.7122837,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.2,"GoogleReviewCount":133},{"ProductId":9077,"Title":"designer's villa EDGE","Price":22000,"CategoryName":"宿泊施設","Latitude":34.253525,"Longitude":134.7046804,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.9,"GoogleReviewCount":90},{"ProductId":10646,"Title":"リストランテ　マレーナ（ヴィラオルティージャ内）","Price":3500,"CategoryName":"グルメ","Latitude":34.3485563,"Longitude":134.7398462,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.2,"GoogleReviewCount":41},{"ProductId":13298,"Title":"そらヴィラ 海テラス南あわじ","Price":30000,"CategoryName":"宿泊施設","Latitude":34.3214999,"Longitude":134.7117822,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.6,"GoogleReviewCount":144},{"ProductId":4420,"Title":"淡路島かわらや","Price":2500,"CategoryName":"グルメ","Latitude":34.319495,"Longitude":134.755444,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4,"GoogleReviewCount":162},{"ProductId":5428,"Title":"休暇村南淡路（キャンプ場）","Price":4500,"CategoryName":"その他","Latitude":34.246277,"Longitude":134.707125,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.2,"GoogleReviewCount":176},{"ProductId":10451,"Title":"和牛専門店 牛楽","Price":6000,"CategoryName":"グルメ","Latitude":34.3005194,"Longitude":134.7428611,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":3.9,"GoogleReviewCount":184},{"ProductId":15315,"Title":"釣り船　若松丸","Price":10000,"CategoryName":"その他","Latitude":34.2936723,"Longitude":134.6584769,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.7,"GoogleReviewCount":3},{"ProductId":8098,"Title":"海鮮漁師料理 水軍","Price":5000,"CategoryName":"グルメ","Latitude":34.1683341,"Longitude":134.8200004,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":3.8,"GoogleReviewCount":148},{"ProductId":4377,"Title":"淡路島カヤック&SUP教室","Price":4000,"CategoryName":"その他","Latitude":34.316195,"Longitude":134.6815304,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.1,"GoogleReviewCount":23},{"ProductId":4419,"Title":"淡路瓦粘土彫刻体験「安冨白土瓦」","Price":2400,"CategoryName":"その他","Latitude":34.319495,"Longitude":134.755444,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4,"GoogleReviewCount":162},{"ProductId":10611,"Title":"淡路島 C-Side｜Hill Top Terrace","Price":8000,"CategoryName":"宿泊施設","Latitude":34.2556828,"Longitude":134.7022469,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.8,"GoogleReviewCount":16},{"ProductId":10612,"Title":"淡路島 C-Side｜Dual View","Price":8000,"CategoryName":"宿泊施設","Latitude":34.2558078,"Longitude":134.7044783,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.7,"GoogleReviewCount":16},{"ProductId":2118,"Title":"やぶ萬旅館","Price":22000,"CategoryName":"宿泊施設","Latitude":34.2575417,"Longitude":134.7185306,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.3,"GoogleReviewCount":294},{"ProductId":10616,"Title":"淡路島 C-Side｜Marine View","Price":8000,"CategoryName":"宿泊施設","Latitude":34.2552945,"Longitude":134.7045917,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.5,"GoogleReviewCount":13},{"ProductId":10615,"Title":"淡路島 C-Side｜Tail Up","Price":8000,"CategoryName":"宿泊施設","Latitude":34.2555327,"Longitude":134.7038052,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.5,"GoogleReviewCount":10},{"ProductId":15192,"Title":"カリコリゾート淡路島","Price":30000,"CategoryName":"宿泊施設","Latitude":34.3287263,"Longitude":134.6886135,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.3,"GoogleReviewCount":3},{"ProductId":10613,"Title":"淡路島 C-Side｜Marine Terrace","Price":8000,"CategoryName":"宿泊施設","Latitude":34.2556094,"Longitude":134.7045035,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4.1,"GoogleReviewCount":9},{"ProductId":10614,"Title":"淡路島 C-Side｜Sky Arena","Price":8000,"CategoryName":"宿泊施設","Latitude":34.2551769,"Longitude":134.7039911,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":4,"GoogleReviewCount":11},{"ProductId":4324,"Title":"淡路ファームパーク　イングランドの丘","Price":1600,"CategoryName":"その他","Latitude":34.306848,"Longitude":134.801526,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":3.9,"GoogleReviewCount":4666},{"ProductId":2190,"Title":"グランドメルキュール淡路島リゾート＆スパ","Price":25000,"CategoryName":"宿泊施設","Latitude":34.2477295,"Longitude":134.6988471,"AreaName":"淡路島","ProductPrefectureName":"兵庫県","GoogleReviewRate":3.8,"GoogleReviewCount":3226}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

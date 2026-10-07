@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>富山県（県庁） 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>富山県（県庁）</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=10016">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":13190,"Title":"天然温泉 剱の湯 御宿 野乃富山","Price":17000,"CategoryName":"宿泊施設","Latitude":36.6894801,"Longitude":137.2120494,"AreaName":"富山","ProductPrefectureName":"富山県","GoogleReviewRate":4.4,"GoogleReviewCount":2131},{"ProductId":13722,"Title":"延楽","Price":50000,"CategoryName":"宿泊施設","Latitude":36.8178836,"Longitude":137.5833399,"AreaName":"立山・黒部・宇奈月","ProductPrefectureName":"富山県","GoogleReviewRate":4.4,"GoogleReviewCount":494},{"ProductId":13665,"Title":"Hashimotoya","Price":40000,"CategoryName":"宿泊施設","Latitude":36.9393547,"Longitude":137.0269276,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":4.7,"GoogleReviewCount":134},{"ProductId":15216,"Title":"ホテルJALシティ富山","Price":12000,"CategoryName":"宿泊施設","Latitude":36.701136,"Longitude":137.2104344,"AreaName":"富山","ProductPrefectureName":"富山県","GoogleReviewRate":4.4,"GoogleReviewCount":944},{"ProductId":13192,"Title":"お宿いけがみ","Price":30000,"CategoryName":"宿泊施設","Latitude":36.7747237,"Longitude":137.4450521,"AreaName":"立山・黒部・宇奈月","ProductPrefectureName":"富山県","GoogleReviewRate":4.5,"GoogleReviewCount":95},{"ProductId":14078,"Title":"ダブルツリーbyヒルトン富山","Price":11000,"CategoryName":"宿泊施設","Latitude":36.6999423,"Longitude":137.211806,"AreaName":"富山","ProductPrefectureName":"富山県","GoogleReviewRate":4.3,"GoogleReviewCount":804},{"ProductId":13048,"Title":"鳥越の宿 三楽園","Price":23000,"CategoryName":"宿泊施設","Latitude":36.568911,"Longitude":136.993549,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":4.4,"GoogleReviewCount":369},{"ProductId":15459,"Title":"里山のオーベルジュ薪の音","Price":38000,"CategoryName":"宿泊施設","Latitude":36.5068997,"Longitude":136.8896486,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":4.7,"GoogleReviewCount":103},{"ProductId":15174,"Title":"天然温泉浜辺の宿あさひや","Price":28000,"CategoryName":"宿泊施設","Latitude":36.8292565,"Longitude":137.0147922,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":4.5,"GoogleReviewCount":186},{"ProductId":15019,"Title":"立山高原ホテル","Price":30000,"CategoryName":"宿泊施設","Latitude":36.5815965,"Longitude":137.5798339,"AreaName":"立山・黒部・宇奈月","ProductPrefectureName":"富山県","GoogleReviewRate":4.4,"GoogleReviewCount":182},{"ProductId":13162,"Title":"移り住みたくなる宿『イミグレ』","Price":30000,"CategoryName":"宿泊施設","Latitude":36.8941265,"Longitude":137.0063118,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":4.4,"GoogleReviewCount":173},{"ProductId":13082,"Title":"GOKAYAMA　BASE","Price":5000,"CategoryName":"宿泊施設","Latitude":36.433563,"Longitude":136.9493859,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":4.8,"GoogleReviewCount":43},{"ProductId":13194,"Title":"SEKAI HOTEL Takaoka","Price":13000,"CategoryName":"宿泊施設","Latitude":36.743613,"Longitude":137.014521,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":4.7,"GoogleReviewCount":52},{"ProductId":13860,"Title":"黒部宇奈月温泉桃源","Price":45000,"CategoryName":"宿泊施設","Latitude":36.8181315,"Longitude":137.5800495,"AreaName":"立山・黒部・宇奈月","ProductPrefectureName":"富山県","GoogleReviewRate":4,"GoogleReviewCount":418},{"ProductId":13191,"Title":"天然温泉 剱の湯 ドーミーイン富山","Price":17000,"CategoryName":"宿泊施設","Latitude":36.6905619,"Longitude":137.2120933,"AreaName":"富山","ProductPrefectureName":"富山県","GoogleReviewRate":4.1,"GoogleReviewCount":1921},{"ProductId":13049,"Title":"五箇山温泉 五箇山荘","Price":25000,"CategoryName":"宿泊施設","Latitude":36.4097625,"Longitude":136.9334268,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":4.2,"GoogleReviewCount":380},{"ProductId":13166,"Title":"みろくの湯の宿 こーざぶろう","Price":15000,"CategoryName":"宿泊施設","Latitude":36.876795,"Longitude":136.98433,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":4.3,"GoogleReviewCount":157},{"ProductId":13193,"Title":"スーパーホテルPremier富山・城址公園前","Price":10000,"CategoryName":"宿泊施設","Latitude":36.6929451,"Longitude":137.2130287,"AreaName":"富山","ProductPrefectureName":"富山県","GoogleReviewRate":4.3,"GoogleReviewCount":156},{"ProductId":13083,"Title":"氷見旅館　たきの荘","Price":8000,"CategoryName":"宿泊施設","Latitude":36.8621041,"Longitude":136.9870421,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":4.6,"GoogleReviewCount":34},{"ProductId":13554,"Title":"グリーンビュー立山","Price":15000,"CategoryName":"宿泊施設","Latitude":36.5836111,"Longitude":137.4433333,"AreaName":"立山・黒部・宇奈月","ProductPrefectureName":"富山県","GoogleReviewRate":4.2,"GoogleReviewCount":277},{"ProductId":14817,"Title":"杜人舎","Price":20000,"CategoryName":"宿泊施設","Latitude":36.5165959,"Longitude":136.9015391,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":4.5,"GoogleReviewCount":37},{"ProductId":13189,"Title":"LOCOMOTION COFFEE AND BED","Price":8000,"CategoryName":"宿泊施設","Latitude":36.5823683,"Longitude":137.4448376,"AreaName":"立山・黒部・宇奈月","ProductPrefectureName":"富山県","GoogleReviewRate":4.3,"GoogleReviewCount":102},{"ProductId":13202,"Title":"雨晴温泉 磯はなび","Price":25000,"CategoryName":"宿泊施設","Latitude":36.8129611,"Longitude":137.0378137,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":4.1,"GoogleReviewCount":830},{"ProductId":13163,"Title":"La・se・ri Resort & Stay","Price":20000,"CategoryName":"宿泊施設","Latitude":36.8995603,"Longitude":137.0111792,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":4.2,"GoogleReviewCount":206},{"ProductId":13492,"Title":"創作割烹 潮乃美","Price":12000,"CategoryName":"宿泊施設","Latitude":36.9137772,"Longitude":137.0246081,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":4.3,"GoogleReviewCount":76},{"ProductId":15467,"Title":"よしのや旅館","Price":16000,"CategoryName":"宿泊施設","Latitude":36.4025081,"Longitude":136.9220123,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":4.3,"GoogleReviewCount":75},{"ProductId":13087,"Title":"北山鉱泉 子宝の湯宿 元祖仁右衛門家","Price":25000,"CategoryName":"宿泊施設","Latitude":36.7750656,"Longitude":137.4453535,"AreaName":"立山・黒部・宇奈月","ProductPrefectureName":"富山県","GoogleReviewRate":4.2,"GoogleReviewCount":142},{"ProductId":14851,"Title":"小川温泉元湯 ホテルおがわ","Price":14000,"CategoryName":"宿泊施設","Latitude":36.8788953,"Longitude":137.6296417,"AreaName":"立山・黒部・宇奈月","ProductPrefectureName":"富山県","GoogleReviewRate":4.1,"GoogleReviewCount":524},{"ProductId":13629,"Title":"湯の里 いけもり","Price":30000,"CategoryName":"宿泊施設","Latitude":36.8912341,"Longitude":136.9791941,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":4.1,"GoogleReviewCount":252},{"ProductId":13130,"Title":"氷見温泉郷 くつろぎの宿 うみあかり","Price":17000,"CategoryName":"宿泊施設","Latitude":36.9059731,"Longitude":137.014056,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":3.9,"GoogleReviewCount":1095},{"ProductId":15463,"Title":"立山の懐　ぬくもりを飾る宿　湯神子温泉","Price":22000,"CategoryName":"宿泊施設","Latitude":36.6890094,"Longitude":137.3679829,"AreaName":"立山・黒部・宇奈月","ProductPrefectureName":"富山県","GoogleReviewRate":4,"GoogleReviewCount":307},{"ProductId":13106,"Title":"氷見温泉郷 魚巡りの宿 永芳閣","Price":15000,"CategoryName":"宿泊施設","Latitude":36.8863889,"Longitude":136.9944444,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":4,"GoogleReviewCount":464},{"ProductId":13052,"Title":"WHARF&CO.","Price":20000,"CategoryName":"宿泊施設","Latitude":36.8664939,"Longitude":136.9856243,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":3.9,"GoogleReviewCount":51},{"ProductId":13050,"Title":"民家ホテル「金ノ三寸」","Price":26000,"CategoryName":"宿泊施設","Latitude":36.7489296,"Longitude":137.0043007,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":4.8,"GoogleReviewCount":53},{"ProductId":13798,"Title":"つるぎ恋月","Price":16000,"CategoryName":"宿泊施設","Latitude":36.6970526,"Longitude":137.3719286,"AreaName":"立山・黒部・宇奈月","ProductPrefectureName":"富山県","GoogleReviewRate":3.9,"GoogleReviewCount":531},{"ProductId":13278,"Title":"なだうら温泉 元湯 磯波風","Price":20000,"CategoryName":"宿泊施設","Latitude":36.899395,"Longitude":137.009877,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":3.9,"GoogleReviewCount":567},{"ProductId":15253,"Title":"四季彩る 食と展望風呂の宿　呉羽ハイツ","Price":19000,"CategoryName":"宿泊施設","Latitude":36.7000137,"Longitude":137.1644743,"AreaName":"富山","ProductPrefectureName":"富山県","GoogleReviewRate":3.9,"GoogleReviewCount":590},{"ProductId":13472,"Title":"TATEYAMA SAUNA","Price":60000,"CategoryName":"宿泊施設","Latitude":36.6183208,"Longitude":137.3314904,"AreaName":"立山・黒部・宇奈月","ProductPrefectureName":"富山県","GoogleReviewRate":4.8,"GoogleReviewCount":26},{"ProductId":13591,"Title":"粋な民宿　美岬","Price":15000,"CategoryName":"宿泊施設","Latitude":36.8857667,"Longitude":136.9961503,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":3.8,"GoogleReviewCount":184},{"ProductId":15060,"Title":"宇奈月温泉 延対寺荘","Price":25000,"CategoryName":"宿泊施設","Latitude":36.818154,"Longitude":137.5823585,"AreaName":"立山・黒部・宇奈月","ProductPrefectureName":"富山県","GoogleReviewRate":3.9,"GoogleReviewCount":877},{"ProductId":14115,"Title":"SAYS FARM STAY","Price":50000,"CategoryName":"宿泊施設","Latitude":36.8971582,"Longitude":136.951468,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":4.2,"GoogleReviewCount":213},{"ProductId":13565,"Title":"川合田温泉山田家","Price":15000,"CategoryName":"宿泊施設","Latitude":36.575899,"Longitude":136.849831,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":3.6,"GoogleReviewCount":135},{"ProductId":13129,"Title":"メルキュール富山砺波リゾート＆スパ","Price":13000,"CategoryName":"宿泊施設","Latitude":36.6145447,"Longitude":137.0169883,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":3.9,"GoogleReviewCount":2280},{"ProductId":14530,"Title":"となみ野庄川荘一萬亭","Price":12000,"CategoryName":"宿泊施設","Latitude":36.584912,"Longitude":136.993496,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":3.7,"GoogleReviewCount":373},{"ProductId":13165,"Title":"万水閣","Price":14000,"CategoryName":"宿泊施設","Latitude":36.4986032,"Longitude":136.8705264,"AreaName":"高岡・氷見・砺波","ProductPrefectureName":"富山県","GoogleReviewRate":4.1,"GoogleReviewCount":38},{"ProductId":13175,"Title":"くつろぎのお宿「やわや」花水木","Price":10000,"CategoryName":"宿泊施設","Latitude":36.6872455,"Longitude":137.206916,"AreaName":"富山","ProductPrefectureName":"富山県","GoogleReviewRate":4,"GoogleReviewCount":2},{"ProductId":14116,"Title":"パレブラン高志会館","Price":8000,"CategoryName":"宿泊施設","Latitude":36.6980366,"Longitude":137.2175739,"AreaName":"富山","ProductPrefectureName":"富山県","GoogleReviewRate":3.6,"GoogleReviewCount":358},{"ProductId":13164,"Title":"ホテルグランテラス富山","Price":8000,"CategoryName":"宿泊施設","Latitude":36.6978733,"Longitude":137.2163051,"AreaName":"富山","ProductPrefectureName":"富山県","GoogleReviewRate":3.7,"GoogleReviewCount":1172}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>
