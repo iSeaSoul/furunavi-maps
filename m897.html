@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>長野県白馬村 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>長野県白馬村</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=897">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":13653,"Title":"ホテルラヴィーニュ白馬 by 温故知新","Price":50000,"CategoryName":"宿泊施設","Latitude":36.6925129,"Longitude":137.8450237,"AreaName":"大町・白馬","ProductPrefectureName":"長野県","GoogleReviewRate":4.6,"GoogleReviewCount":83},{"ProductId":13555,"Title":"はくば Moegi HOTEL","Price":10000,"CategoryName":"宿泊施設","Latitude":36.7042226,"Longitude":137.8357036,"AreaName":"大町・白馬","ProductPrefectureName":"長野県","GoogleReviewRate":4.8,"GoogleReviewCount":152},{"ProductId":13468,"Title":"白馬龍神温泉 RYOKAN SUI","Price":21000,"CategoryName":"宿泊施設","Latitude":36.653907,"Longitude":137.848327,"AreaName":"大町・白馬","ProductPrefectureName":"長野県","GoogleReviewRate":4.4,"GoogleReviewCount":474},{"ProductId":13277,"Title":"白馬 山のホテル","Price":15000,"CategoryName":"宿泊施設","Latitude":36.6941267,"Longitude":137.8381678,"AreaName":"大町・白馬","ProductPrefectureName":"長野県","GoogleReviewRate":4.6,"GoogleReviewCount":193},{"ProductId":13551,"Title":"山とねこと遊ぶ宿　みなみ家","Price":9000,"CategoryName":"宿泊施設","Latitude":36.6952181,"Longitude":137.8460977,"AreaName":"大町・白馬","ProductPrefectureName":"長野県","GoogleReviewRate":4.7,"GoogleReviewCount":103},{"ProductId":13225,"Title":"HakubaMAHOROBA","Price":34000,"CategoryName":"宿泊施設","Latitude":36.6916754,"Longitude":137.8451962,"AreaName":"大町・白馬","ProductPrefectureName":"長野県","GoogleReviewRate":4.9,"GoogleReviewCount":32},{"ProductId":13778,"Title":"スカイブルー八方尾根パラグライダースクール（グリーンシーズン）","Price":22000,"CategoryName":"その他","Latitude":36.6988391,"Longitude":137.8401965,"AreaName":"大町・白馬","ProductPrefectureName":"長野県","GoogleReviewRate":4.8,"GoogleReviewCount":83},{"ProductId":13562,"Title":"スカイブルー八方尾根パラグライダースクール","Price":18000,"CategoryName":"その他","Latitude":36.6988391,"Longitude":137.8401965,"AreaName":"大町・白馬","ProductPrefectureName":"長野県","GoogleReviewRate":4.8,"GoogleReviewCount":83},{"ProductId":13500,"Title":"リバーサイドやまや","Price":22000,"CategoryName":"宿泊施設","Latitude":36.6563178,"Longitude":137.8461457,"AreaName":"大町・白馬","ProductPrefectureName":"長野県","GoogleReviewRate":4.5,"GoogleReviewCount":52},{"ProductId":13424,"Title":"TOKI RESORT HAKUBA(旧：ホテルアベスト白馬リゾート)","Price":35000,"CategoryName":"宿泊施設","Latitude":36.6612217,"Longitude":137.837404,"AreaName":"大町・白馬","ProductPrefectureName":"長野県","GoogleReviewRate":4.2,"GoogleReviewCount":157},{"ProductId":13553,"Title":"白馬ホテル扇屋","Price":20000,"CategoryName":"宿泊施設","Latitude":36.703675,"Longitude":137.8446414,"AreaName":"大町・白馬","ProductPrefectureName":"長野県","GoogleReviewRate":4.2,"GoogleReviewCount":108},{"ProductId":13552,"Title":"ホテル ヴァイサーホフ 八平","Price":15000,"CategoryName":"宿泊施設","Latitude":36.701379,"Longitude":137.843897,"AreaName":"大町・白馬","ProductPrefectureName":"長野県","GoogleReviewRate":4,"GoogleReviewCount":60},{"ProductId":13465,"Title":"Villa El Cielo Hakuba","Price":200000,"CategoryName":"宿泊施設","Latitude":36.7119989,"Longitude":137.8331559,"AreaName":"大町・白馬","ProductPrefectureName":"長野県","GoogleReviewRate":4.9,"GoogleReviewCount":45},{"ProductId":13595,"Title":"白馬ライオンアドベンチャー","Price":5000,"CategoryName":"その他","Latitude":36.701592,"Longitude":137.8467827,"AreaName":"大町・白馬","ProductPrefectureName":"長野県","GoogleReviewRate":4.1,"GoogleReviewCount":78},{"ProductId":13467,"Title":"NÍVIA","Price":150000,"CategoryName":"宿泊施設","Latitude":36.712806,"Longitude":137.8308384,"AreaName":"大町・白馬","ProductPrefectureName":"長野県","GoogleReviewRate":4.8,"GoogleReviewCount":21},{"ProductId":13306,"Title":"SOMA RESIDENCE HAKUBA","Price":150000,"CategoryName":"宿泊施設","Latitude":36.7037545,"Longitude":137.8440757,"AreaName":"大町・白馬","ProductPrefectureName":"長野県","GoogleReviewRate":5,"GoogleReviewCount":7},{"ProductId":13590,"Title":"白馬八方温泉 白馬ホテル花乃郷","Price":35000,"CategoryName":"宿泊施設","Latitude":36.702045,"Longitude":137.84291,"AreaName":"大町・白馬","ProductPrefectureName":"長野県","GoogleReviewRate":3.6,"GoogleReviewCount":117},{"ProductId":13494,"Title":"白馬サンバレーホテル","Price":12000,"CategoryName":"宿泊施設","Latitude":36.6689613,"Longitude":137.8392798,"AreaName":"大町・白馬","ProductPrefectureName":"長野県","GoogleReviewRate":3.6,"GoogleReviewCount":162}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

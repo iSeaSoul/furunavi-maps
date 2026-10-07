@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>山梨県北杜市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>山梨県北杜市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=812">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":3394,"Title":"カントリーイン ザ クラシック","Price":21000,"CategoryName":"宿泊施設","Latitude":35.9112778,"Longitude":138.4457974,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.8,"GoogleReviewCount":155},{"ProductId":3439,"Title":"Villa Key Forest","Price":72000,"CategoryName":"宿泊施設","Latitude":35.8869542,"Longitude":138.3199253,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.5,"GoogleReviewCount":100},{"ProductId":3407,"Title":"ホテルキーフォレスト北杜","Price":120000,"CategoryName":"宿泊施設","Latitude":35.8869542,"Longitude":138.3199253,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.5,"GoogleReviewCount":100},{"ProductId":5402,"Title":"ザ ノマド 八ヶ岳","Price":36000,"CategoryName":"宿泊施設","Latitude":35.8811407,"Longitude":138.36089,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":5,"GoogleReviewCount":55},{"ProductId":8447,"Title":"88PEAKS SAUNA（エイトピークス サウナ）","Price":11000,"CategoryName":"その他","Latitude":35.9026098,"Longitude":138.4457665,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.9,"GoogleReviewCount":142},{"ProductId":3422,"Title":"小淵沢カントリークラブ ロッヂ","Price":15000,"CategoryName":"宿泊施設","Latitude":35.8886596,"Longitude":138.3322069,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.4,"GoogleReviewCount":324},{"ProductId":7906,"Title":"PAUSE","Price":15000,"CategoryName":"グルメ","Latitude":35.8535714,"Longitude":138.335277,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.7,"GoogleReviewCount":98},{"ProductId":8477,"Title":"清泉寮","Price":30000,"CategoryName":"宿泊施設","Latitude":35.9244858,"Longitude":138.4188167,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.1,"GoogleReviewCount":3838},{"ProductId":3387,"Title":"萌木の村 ホテルハットウォールデン","Price":13000,"CategoryName":"宿泊施設","Latitude":35.9160141,"Longitude":138.4424614,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.4,"GoogleReviewCount":210},{"ProductId":14415,"Title":"清里高原リゾート","Price":20000,"CategoryName":"宿泊施設","Latitude":35.9364126,"Longitude":138.4238904,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.2,"GoogleReviewCount":800},{"ProductId":3404,"Title":"八ヶ岳ホテル風か","Price":30000,"CategoryName":"宿泊施設","Latitude":35.882584,"Longitude":138.310935,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.2,"GoogleReviewCount":687},{"ProductId":7098,"Title":"清里高原ハイランドホテル","Price":33000,"CategoryName":"宿泊施設","Latitude":35.879275,"Longitude":138.437612,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.6,"GoogleReviewCount":62},{"ProductId":3401,"Title":"ロッジキースプリング八ヶ岳","Price":25000,"CategoryName":"宿泊施設","Latitude":35.8874181,"Longitude":138.3202221,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.4,"GoogleReviewCount":138},{"ProductId":8411,"Title":"88PEAKS（エイトピークス）","Price":13000,"CategoryName":"宿泊施設","Latitude":35.9026098,"Longitude":138.4457665,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.9,"GoogleReviewCount":142},{"ProductId":3399,"Title":"オーベルジュ清里","Price":24000,"CategoryName":"宿泊施設","Latitude":35.8964208,"Longitude":138.4380025,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.3,"GoogleReviewCount":108},{"ProductId":8183,"Title":"ビストロ　バガブー","Price":6000,"CategoryName":"グルメ","Latitude":35.86318,"Longitude":138.3176796,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.2,"GoogleReviewCount":162},{"ProductId":7881,"Title":"Lodge　kent","Price":10000,"CategoryName":"宿泊施設","Latitude":35.8831425,"Longitude":138.3297524,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.3,"GoogleReviewCount":36},{"ProductId":10058,"Title":"オールドエイジ（プチホテル＆レストラン）","Price":16000,"CategoryName":"宿泊施設","Latitude":35.9170151,"Longitude":138.4419339,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.1,"GoogleReviewCount":128},{"ProductId":4155,"Title":"0site コーヒー焙煎","Price":2000,"CategoryName":"その他","Latitude":35.8617118,"Longitude":138.5218297,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.9,"GoogleReviewCount":23},{"ProductId":4154,"Title":"0site（キャンプ）","Price":4000,"CategoryName":"その他","Latitude":35.8617118,"Longitude":138.5218297,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.9,"GoogleReviewCount":23},{"ProductId":4183,"Title":"八ヶ岳ブルーベリー園ダロウ","Price":1600,"CategoryName":"その他","Latitude":35.8705696,"Longitude":138.4144737,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.9,"GoogleReviewCount":15},{"ProductId":4015,"Title":"陶房のぎ","Price":3000,"CategoryName":"その他","Latitude":35.833333,"Longitude":138.34213,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.7,"GoogleReviewCount":21},{"ProductId":6798,"Title":"PICA八ヶ岳明野","Price":25000,"CategoryName":"宿泊施設","Latitude":35.7898108,"Longitude":138.4835733,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.3,"GoogleReviewCount":400},{"ProductId":4318,"Title":"ブルーベリー観光農園O-B-Iベリー","Price":1500,"CategoryName":"その他","Latitude":35.8196235,"Longitude":138.373861,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.8,"GoogleReviewCount":8},{"ProductId":4198,"Title":"加藤さくらんぼ農園","Price":2300,"CategoryName":"その他","Latitude":35.8546038,"Longitude":138.4191594,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.3,"GoogleReviewCount":49},{"ProductId":4952,"Title":"プレミアムヴィンヤード見学ツアー（Komaki Vineyard）","Price":4500,"CategoryName":"その他","Latitude":35.8536701,"Longitude":138.313938,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.3,"GoogleReviewCount":35},{"ProductId":4125,"Title":"甲斐こまベリーファーム","Price":2000,"CategoryName":"その他","Latitude":35.7842042,"Longitude":138.376345,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":5,"GoogleReviewCount":2},{"ProductId":4063,"Title":"ブルーベリー明野","Price":1000,"CategoryName":"その他","Latitude":35.7805836,"Longitude":138.4606112,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.2,"GoogleReviewCount":44},{"ProductId":3400,"Title":"テットベリーコテージ","Price":25000,"CategoryName":"宿泊施設","Latitude":35.9063624,"Longitude":138.4337356,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.9,"GoogleReviewCount":23},{"ProductId":3395,"Title":"Komaki Vineyard　客室宿泊","Price":24000,"CategoryName":"宿泊施設","Latitude":35.8536701,"Longitude":138.313938,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":4.3,"GoogleReviewCount":35},{"ProductId":4266,"Title":"マルサマルシェ星野リゾートリゾナーレ八ヶ岳店（クラフト体験・スイーツ作り）","Price":2700,"CategoryName":"その他","Latitude":35.8705915,"Longitude":138.3263693,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":3.5,"GoogleReviewCount":21},{"ProductId":3406,"Title":"AYUS VILLA MISEN","Price":56000,"CategoryName":"宿泊施設","Latitude":35.8869423,"Longitude":138.3181692,"AreaName":"清里・小淵沢･八ヶ岳","ProductPrefectureName":"山梨県","GoogleReviewRate":5,"GoogleReviewCount":1}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

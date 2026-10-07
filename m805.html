@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>山梨県甲府市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>山梨県甲府市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=805">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":8159,"Title":"天然温泉 勝運の湯 ドーミーイン甲府丸の内","Price":12000,"CategoryName":"宿泊施設","Latitude":35.6613323,"Longitude":138.5670946,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.3,"GoogleReviewCount":1217},{"ProductId":2906,"Title":"常磐ホテル ","Price":30000,"CategoryName":"宿泊施設","Latitude":35.6793823,"Longitude":138.5490875,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.3,"GoogleReviewCount":1212},{"ProductId":8479,"Title":"フルウント甲府","Price":1500,"CategoryName":"グルメ","Latitude":35.6602321,"Longitude":138.5710542,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.6,"GoogleReviewCount":195},{"ProductId":11161,"Title":"Hops and Herbs","Price":2500,"CategoryName":"グルメ","Latitude":35.6605126,"Longitude":138.5710584,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.4,"GoogleReviewCount":346},{"ProductId":3138,"Title":"城のホテル 甲府","Price":15000,"CategoryName":"宿泊施設","Latitude":35.666066,"Longitude":138.570376,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.2,"GoogleReviewCount":1259},{"ProductId":8069,"Title":"和食海鮮 ぎん","Price":3000,"CategoryName":"グルメ","Latitude":35.6576934,"Longitude":138.5902413,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.4,"GoogleReviewCount":173},{"ProductId":11316,"Title":"鶏そばAkari","Price":2000,"CategoryName":"グルメ","Latitude":35.6657571,"Longitude":138.5675469,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.2,"GoogleReviewCount":455},{"ProductId":11976,"Title":"SADOYAレストラン レアルドール","Price":8000,"CategoryName":"グルメ","Latitude":35.667712,"Longitude":138.5733623,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.3,"GoogleReviewCount":190},{"ProductId":8147,"Title":"天然温泉 甲斐路の湯 ドーミーイン甲府","Price":10000,"CategoryName":"宿泊施設","Latitude":35.6596549,"Longitude":138.5707546,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.1,"GoogleReviewCount":1710},{"ProductId":13646,"Title":"中華 NIGRAT","Price":20000,"CategoryName":"グルメ","Latitude":35.6704435,"Longitude":138.5710348,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.8,"GoogleReviewCount":24},{"ProductId":12087,"Title":"洋食レストラン ベンジャロン（古名屋ホテル内）","Price":6000,"CategoryName":"グルメ","Latitude":35.6610966,"Longitude":138.569112,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.2,"GoogleReviewCount":372},{"ProductId":2890,"Title":"古名屋ホテル","Price":20000,"CategoryName":"宿泊施設","Latitude":35.6613082,"Longitude":138.5690547,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.2,"GoogleReviewCount":372},{"ProductId":8380,"Title":"麺や コリキ","Price":1000,"CategoryName":"グルメ","Latitude":35.6516652,"Longitude":138.5811542,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.2,"GoogleReviewCount":252},{"ProductId":10505,"Title":"ボンマルシェ","Price":3000,"CategoryName":"グルメ","Latitude":35.6605664,"Longitude":138.569248,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.2,"GoogleReviewCount":205},{"ProductId":12089,"Title":"中国料理 蘭園（古名屋ホテル内）","Price":5000,"CategoryName":"グルメ","Latitude":35.6610263,"Longitude":138.5692494,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.2,"GoogleReviewCount":147},{"ProductId":11983,"Title":"濃厚水炊かぐら","Price":5500,"CategoryName":"グルメ","Latitude":35.6584808,"Longitude":138.5696009,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.2,"GoogleReviewCount":84},{"ProductId":15268,"Title":"カジュアル　レストラン　ワインクラブ","Price":2500,"CategoryName":"グルメ","Latitude":35.6675548,"Longitude":138.592172,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.2,"GoogleReviewCount":81},{"ProductId":12101,"Title":"バーラウンジ シルク（古名屋ホテル内）","Price":3000,"CategoryName":"グルメ","Latitude":35.6610593,"Longitude":138.5689769,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.3,"GoogleReviewCount":35},{"ProductId":8423,"Title":"ほうとう 金峰","Price":1500,"CategoryName":"グルメ","Latitude":35.6529927,"Longitude":138.5403262,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.1,"GoogleReviewCount":277},{"ProductId":10402,"Title":"是色","Price":3000,"CategoryName":"グルメ","Latitude":35.6628428,"Longitude":138.5671734,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.3,"GoogleReviewCount":26},{"ProductId":4104,"Title":"いちご館くぼた","Price":2300,"CategoryName":"その他","Latitude":35.6066844,"Longitude":138.5838088,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.6,"GoogleReviewCount":61},{"ProductId":7992,"Title":"ビストロ　メゾン・ド・ルージュ","Price":5000,"CategoryName":"グルメ","Latitude":35.662412,"Longitude":138.570678,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.2,"GoogleReviewCount":45},{"ProductId":4239,"Title":"三晃貴石","Price":3800,"CategoryName":"その他","Latitude":35.64787,"Longitude":138.555484,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.8,"GoogleReviewCount":22},{"ProductId":4153,"Title":"観光苺 山城園 3番","Price":2300,"CategoryName":"その他","Latitude":35.6076712,"Longitude":138.5800488,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.6,"GoogleReviewCount":36},{"ProductId":12183,"Title":"春日のちゃぶ台","Price":4000,"CategoryName":"グルメ","Latitude":35.659569,"Longitude":138.5697587,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4,"GoogleReviewCount":116},{"ProductId":11455,"Title":"中華ごはん かんざし","Price":2000,"CategoryName":"グルメ","Latitude":35.6586453,"Longitude":138.5539192,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4,"GoogleReviewCount":1366},{"ProductId":10452,"Title":"大衆割烹　友四郎","Price":5000,"CategoryName":"グルメ","Latitude":35.6598942,"Longitude":138.5699043,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4,"GoogleReviewCount":177},{"ProductId":4240,"Title":"昇仙峡影絵の森美術館","Price":800,"CategoryName":"その他","Latitude":35.7512841,"Longitude":138.5662202,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.1,"GoogleReviewCount":818},{"ProductId":13613,"Title":"生そば処　らくすい","Price":3000,"CategoryName":"グルメ","Latitude":35.6779288,"Longitude":138.5496148,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":3.9,"GoogleReviewCount":42},{"ProductId":11104,"Title":"まるごとやまなし館","Price":1500,"CategoryName":"グルメ","Latitude":35.6636856,"Longitude":138.568196,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":3.9,"GoogleReviewCount":207},{"ProductId":10401,"Title":"麺屋 甲武信","Price":1300,"CategoryName":"グルメ","Latitude":35.6627959,"Longitude":138.5703929,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":3.9,"GoogleReviewCount":270},{"ProductId":2878,"Title":"湯志摩の郷 楽水園","Price":16000,"CategoryName":"宿泊施設","Latitude":35.6779029,"Longitude":138.5496807,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":3.8,"GoogleReviewCount":104},{"ProductId":4186,"Title":"～太陽と大地の恵み～石原農場","Price":2000,"CategoryName":"その他","Latitude":35.609093,"Longitude":138.583986,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4.1,"GoogleReviewCount":97},{"ProductId":2891,"Title":"甲州湯村温泉　柳屋","Price":20000,"CategoryName":"宿泊施設","Latitude":35.6831551,"Longitude":138.5476379,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":3.8,"GoogleReviewCount":261},{"ProductId":4120,"Title":"昇仙峡ロープウェイ","Price":1300,"CategoryName":"その他","Latitude":35.7534957,"Longitude":138.5642527,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":4,"GoogleReviewCount":2978},{"ProductId":10595,"Title":"手打ちそば奥村本店","Price":3000,"CategoryName":"グルメ","Latitude":35.6583574,"Longitude":138.570934,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":3.8,"GoogleReviewCount":341},{"ProductId":8449,"Title":"ジビエ＆ワイン ブラッスリー山梨","Price":4000,"CategoryName":"グルメ","Latitude":35.6609545,"Longitude":138.5696979,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":3.7,"GoogleReviewCount":181},{"ProductId":11390,"Title":"ラーメン雷家","Price":2000,"CategoryName":"グルメ","Latitude":35.658269,"Longitude":138.5976744,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":3.6,"GoogleReviewCount":300},{"ProductId":11057,"Title":"甲府記念日ホテル","Price":25000,"CategoryName":"宿泊施設","Latitude":35.6808755,"Longitude":138.5475895,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":3.8,"GoogleReviewCount":1746},{"ProductId":2885,"Title":"シャトレーゼホテル談露館","Price":19000,"CategoryName":"宿泊施設","Latitude":35.662143,"Longitude":138.568989,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":3.7,"GoogleReviewCount":887},{"ProductId":11700,"Title":"奥京","Price":3000,"CategoryName":"グルメ","Latitude":35.6650913,"Longitude":138.5668416,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":3.4,"GoogleReviewCount":226},{"ProductId":4067,"Title":"昇仙峡さわらび","Price":2200,"CategoryName":"その他","Latitude":35.7382773,"Longitude":138.5648384,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":3.4,"GoogleReviewCount":96},{"ProductId":8110,"Title":"甲府プリンスホテル朝日館","Price":6000,"CategoryName":"宿泊施設","Latitude":35.6687727,"Longitude":138.5652264,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":3.1,"GoogleReviewCount":599}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

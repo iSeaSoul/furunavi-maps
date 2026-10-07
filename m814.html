@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>山梨県笛吹市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>山梨県笛吹市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=814">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":3189,"Title":"糸柳別館 離れの邸 和穣苑","Price":40000,"CategoryName":"宿泊施設","Latitude":35.6518842,"Longitude":138.6408847,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":4.6,"GoogleReviewCount":191},{"ProductId":15220,"Title":"石和名湯館 糸柳（レストラン）","Price":15000,"CategoryName":"グルメ","Latitude":35.6546145,"Longitude":138.6359084,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":4.3,"GoogleReviewCount":973},{"ProductId":3159,"Title":"石和名湯館　糸柳","Price":25000,"CategoryName":"宿泊施設","Latitude":35.6545143,"Longitude":138.6360321,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":4.3,"GoogleReviewCount":973},{"ProductId":3154,"Title":"銘石の宿 かげつ","Price":22000,"CategoryName":"宿泊施設","Latitude":35.6579,"Longitude":138.6484165,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":4.3,"GoogleReviewCount":718},{"ProductId":3186,"Title":"糸柳こやど ゆわ","Price":30000,"CategoryName":"宿泊施設","Latitude":35.6577942,"Longitude":138.6479427,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":4.4,"GoogleReviewCount":390},{"ProductId":3158,"Title":"旅館　深雪温泉","Price":25000,"CategoryName":"宿泊施設","Latitude":35.6514281,"Longitude":138.6334296,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":4.3,"GoogleReviewCount":509},{"ProductId":4131,"Title":"スパランド　ホテル内藤","Price":7000,"CategoryName":"宿泊施設","Latitude":35.6429558,"Longitude":138.6257782,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":4.1,"GoogleReviewCount":2518},{"ProductId":5696,"Title":"ホテル春日居","Price":28000,"CategoryName":"宿泊施設","Latitude":35.6602064,"Longitude":138.6598155,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":4.2,"GoogleReviewCount":574},{"ProductId":4010,"Title":"加賀美アーチェリー","Price":2800,"CategoryName":"その他","Latitude":35.5740066,"Longitude":138.68555,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":4.7,"GoogleReviewCount":107},{"ProductId":3134,"Title":"旅館　日の出温泉","Price":13000,"CategoryName":"宿泊施設","Latitude":35.662655,"Longitude":138.637488,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":4.2,"GoogleReviewCount":201},{"ProductId":4130,"Title":"（日帰り温泉）スパランド　ホテル内藤","Price":2100,"CategoryName":"その他","Latitude":35.6429558,"Longitude":138.6257782,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":4.1,"GoogleReviewCount":2518},{"ProductId":3812,"Title":"石和温泉郷 旅館 喜仙","Price":25000,"CategoryName":"宿泊施設","Latitude":35.6562111,"Longitude":138.6464586,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":4.1,"GoogleReviewCount":250},{"ProductId":11177,"Title":"うなぎ茶屋すみ蔵","Price":4400,"CategoryName":"グルメ","Latitude":35.6439883,"Longitude":138.6249632,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":4.1,"GoogleReviewCount":83},{"ProductId":8109,"Title":"石和健康ランド","Price":10000,"CategoryName":"宿泊施設","Latitude":35.6594444,"Longitude":138.6233333,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":4,"GoogleReviewCount":2821},{"ProductId":3183,"Title":"華やぎの章　慶山","Price":23000,"CategoryName":"宿泊施設","Latitude":35.6528804,"Longitude":138.6355042,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":4,"GoogleReviewCount":2352},{"ProductId":3143,"Title":"石和常磐ホテル","Price":18000,"CategoryName":"宿泊施設","Latitude":35.659789,"Longitude":138.656829,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":4,"GoogleReviewCount":820},{"ProductId":3917,"Title":"銘庭の宿 ホテル甲子園","Price":70000,"CategoryName":"宿泊施設","Latitude":35.6495705,"Longitude":138.6305789,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":3.7,"GoogleReviewCount":351},{"ProductId":4487,"Title":"ホテル古柏園","Price":17000,"CategoryName":"宿泊施設","Latitude":35.6522255,"Longitude":138.6343841,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":3.9,"GoogleReviewCount":410},{"ProductId":3212,"Title":"美と健康と癒しの宿　ホテル八田","Price":18000,"CategoryName":"宿泊施設","Latitude":35.6582908,"Longitude":138.6471862,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":3.9,"GoogleReviewCount":642},{"ProductId":12318,"Title":"春日居温泉 囲炉裏炭火焼 民芸風旅館 大棟苑","Price":15000,"CategoryName":"宿泊施設","Latitude":35.661801,"Longitude":138.661,"AreaName":"甲府・湯村","ProductPrefectureName":"山梨県","GoogleReviewRate":3.8,"GoogleReviewCount":163},{"ProductId":8371,"Title":"新中国料理 大三元","Price":2000,"CategoryName":"グルメ","Latitude":35.650787,"Longitude":138.632533,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":3.8,"GoogleReviewCount":237},{"ProductId":4319,"Title":"泰果園","Price":1200,"CategoryName":"その他","Latitude":35.6172249,"Longitude":138.6916597,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":4,"GoogleReviewCount":102},{"ProductId":4236,"Title":"笛吹ワイン","Price":2500,"CategoryName":"その他","Latitude":35.627297,"Longitude":138.659287,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":4,"GoogleReviewCount":46},{"ProductId":7280,"Title":"別邸　花水晶","Price":18000,"CategoryName":"宿泊施設","Latitude":35.6591231,"Longitude":138.6575696,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":3.7,"GoogleReviewCount":267},{"ProductId":5909,"Title":"農泊体験宿「桃源の家」","Price":20000,"CategoryName":"宿泊施設","Latitude":35.6382659,"Longitude":138.6928941,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":5,"GoogleReviewCount":1},{"ProductId":4265,"Title":"マルサマルシェ笛吹店（クラフト体験・スイーツ作り）","Price":2700,"CategoryName":"その他","Latitude":35.6437798,"Longitude":138.6948174,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":3.7,"GoogleReviewCount":120},{"ProductId":4018,"Title":"カムイみさかスキー場","Price":4000,"CategoryName":"その他","Latitude":35.582349,"Longitude":138.753224,"AreaName":"石和・山梨市","ProductPrefectureName":"山梨県","GoogleReviewRate":3.9,"GoogleReviewCount":1130}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

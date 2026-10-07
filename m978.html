@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>静岡県西伊豆町 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>静岡県西伊豆町</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=978">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":11324,"Title":"黄金崎公園マリンスポーツセンター","Price":10000,"CategoryName":"その他","Latitude":34.8429795,"Longitude":138.7621188,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.9,"GoogleReviewCount":278},{"ProductId":11409,"Title":"堂ヶ島ニュー銀水","Price":23000,"CategoryName":"宿泊施設","Latitude":34.7901365,"Longitude":138.7628021,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.3,"GoogleReviewCount":2122},{"ProductId":11326,"Title":"Seaside Base ARARI","Price":20000,"CategoryName":"宿泊施設","Latitude":34.828143,"Longitude":138.76252,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.7,"GoogleReviewCount":304},{"ProductId":11400,"Title":"至善天遊","Price":25000,"CategoryName":"宿泊施設","Latitude":34.7876488,"Longitude":138.762627,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.4,"GoogleReviewCount":461},{"ProductId":11342,"Title":"2ndcafe.futocoast","Price":2500,"CategoryName":"グルメ","Latitude":34.7940565,"Longitude":138.7583509,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.9,"GoogleReviewCount":86},{"ProductId":11607,"Title":"お食事処　海産亭","Price":2000,"CategoryName":"グルメ","Latitude":34.8558275,"Longitude":138.7778765,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.5,"GoogleReviewCount":194},{"ProductId":13548,"Title":"堂ヶ島温泉郷 宇久須 お刺身と天然温泉の宿 伊豆一","Price":30000,"CategoryName":"宿泊施設","Latitude":34.8498298,"Longitude":138.7773599,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.7,"GoogleReviewCount":92},{"ProductId":13800,"Title":"DON・MARLIN","Price":2000,"CategoryName":"グルメ","Latitude":34.7701481,"Longitude":138.7727552,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.4,"GoogleReviewCount":238},{"ProductId":11357,"Title":"伊豆グランピングリゾートIshiki385","Price":20000,"CategoryName":"宿泊施設","Latitude":34.790723,"Longitude":138.8082652,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.8,"GoogleReviewCount":50},{"ProductId":14975,"Title":"Il Azzurri","Price":30000,"CategoryName":"宿泊施設","Latitude":34.7843755,"Longitude":138.7656706,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.2,"GoogleReviewCount":765},{"ProductId":11358,"Title":"やまびこ荘","Price":5000,"CategoryName":"宿泊施設","Latitude":34.812764,"Longitude":138.826198,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.3,"GoogleReviewCount":270},{"ProductId":11410,"Title":"ペットと泊まれる宿　シーガル","Price":15000,"CategoryName":"宿泊施設","Latitude":34.7668403,"Longitude":138.7779368,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.3,"GoogleReviewCount":192},{"ProductId":15461,"Title":"温泉民宿 保海荘","Price":10000,"CategoryName":"宿泊施設","Latitude":34.777387,"Longitude":138.768256,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.4,"GoogleReviewCount":77},{"ProductId":11364,"Title":"黄金崎ダイブセンター","Price":5500,"CategoryName":"その他","Latitude":34.8425126,"Longitude":138.7668936,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.6,"GoogleReviewCount":128},{"ProductId":14103,"Title":"旅の宿 ふかい","Price":16000,"CategoryName":"宿泊施設","Latitude":34.7776695,"Longitude":138.7674442,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.3,"GoogleReviewCount":88},{"ProductId":11360,"Title":"西天城高原 牧場の家（レストラン）","Price":1500,"CategoryName":"グルメ","Latitude":34.8572811,"Longitude":138.8384587,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.1,"GoogleReviewCount":675},{"ProductId":11580,"Title":"マリンステーション堂ヶ島","Price":13200,"CategoryName":"その他","Latitude":34.7832138,"Longitude":138.7673623,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.8,"GoogleReviewCount":38},{"ProductId":11119,"Title":"田子ダイビングセンター","Price":17000,"CategoryName":"その他","Latitude":34.8011207,"Longitude":138.7588348,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.5,"GoogleReviewCount":93},{"ProductId":11343,"Title":"居酒屋＆BAR　T's","Price":5000,"CategoryName":"グルメ","Latitude":34.7716932,"Longitude":138.7731971,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.2,"GoogleReviewCount":31},{"ProductId":11362,"Title":"海岸キャンプ 宇久須キャンプ場","Price":5500,"CategoryName":"その他","Latitude":34.8545339,"Longitude":138.7765388,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.2,"GoogleReviewCount":235},{"ProductId":11391,"Title":"西伊豆ダイビングサービス UMIKOZOU","Price":16000,"CategoryName":"その他","Latitude":34.827445,"Longitude":138.7679974,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.7,"GoogleReviewCount":15},{"ProductId":13019,"Title":"AQUA VILLGE","Price":20000,"CategoryName":"その他","Latitude":34.8137738,"Longitude":138.7545313,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.4,"GoogleReviewCount":20},{"ProductId":11359,"Title":"西天城高原　牧場の家","Price":13000,"CategoryName":"宿泊施設","Latitude":34.8572811,"Longitude":138.8384587,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.1,"GoogleReviewCount":675},{"ProductId":11361,"Title":"黄金崎クリスタルパーク　リリカ","Price":1000,"CategoryName":"グルメ","Latitude":34.8441242,"Longitude":138.7685074,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":3.6,"GoogleReviewCount":1121},{"ProductId":11365,"Title":"（体験工房）黄金崎クリスタルパーク","Price":2000,"CategoryName":"その他","Latitude":34.8441242,"Longitude":138.7685074,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":3.6,"GoogleReviewCount":1121},{"ProductId":11355,"Title":"（黄金崎ガラスミュージアム）黄金崎クリスタルパーク","Price":2700,"CategoryName":"その他","Latitude":34.8441242,"Longitude":138.7685074,"AreaName":"堂ヶ島・土肥・西伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":3.6,"GoogleReviewCount":1121}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

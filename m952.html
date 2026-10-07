@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>静岡県浜松市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>静岡県浜松市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=952">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":5373,"Title":"グランドエクシブ浜名湖","Price":27000,"CategoryName":"宿泊施設","Latitude":34.7226406,"Longitude":137.6039324,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":4.3,"GoogleReviewCount":1751},{"ProductId":3182,"Title":"ホテルウェルシーズン浜名湖","Price":22000,"CategoryName":"宿泊施設","Latitude":34.7630132,"Longitude":137.6155023,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":4.2,"GoogleReviewCount":2277},{"ProductId":4122,"Title":"（日帰り温泉）ホテルウェルシーズン浜名湖　レストラン　るぴなす","Price":3400,"CategoryName":"その他","Latitude":34.7630132,"Longitude":137.6155023,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":4.2,"GoogleReviewCount":2277},{"ProductId":10386,"Title":"関西風炭焼きうなぎ専門店　うなぎのかんたろう","Price":3800,"CategoryName":"グルメ","Latitude":34.7097378,"Longitude":137.7099525,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":4.2,"GoogleReviewCount":485},{"ProductId":14046,"Title":"焼豚小屋とんとこ豚","Price":4000,"CategoryName":"グルメ","Latitude":34.702603,"Longitude":137.7320094,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":4.4,"GoogleReviewCount":121},{"ProductId":13795,"Title":"竜ヶ岩洞","Price":1000,"CategoryName":"その他","Latitude":34.8451749,"Longitude":137.6488718,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":4.1,"GoogleReviewCount":5322},{"ProductId":13766,"Title":"ラボラトリー","Price":1500,"CategoryName":"グルメ","Latitude":34.7075705,"Longitude":137.7332743,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":4.3,"GoogleReviewCount":159},{"ProductId":14063,"Title":"スイーツバンク　とらとふうせん","Price":1200,"CategoryName":"グルメ","Latitude":34.6899394,"Longitude":137.7199115,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":4.1,"GoogleReviewCount":95},{"ProductId":13891,"Title":"千鳥寿司","Price":4000,"CategoryName":"グルメ","Latitude":34.7089106,"Longitude":137.7387811,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":4.1,"GoogleReviewCount":42},{"ProductId":14198,"Title":"UNAGIPIE CAFÉ","Price":1500,"CategoryName":"グルメ","Latitude":34.7150307,"Longitude":137.6565668,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":4,"GoogleReviewCount":17},{"ProductId":5577,"Title":"ホテルソリッソ浜松","Price":7000,"CategoryName":"宿泊施設","Latitude":34.7028749,"Longitude":137.7342972,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":4,"GoogleReviewCount":461},{"ProductId":4274,"Title":"WIND VILLAGE（ウインドビレッジ）","Price":7000,"CategoryName":"その他","Latitude":34.71329,"Longitude":137.5836682,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":4.9,"GoogleReviewCount":9},{"ProductId":14091,"Title":"THE COURTYARD KITCHEN","Price":2500,"CategoryName":"グルメ","Latitude":34.7965933,"Longitude":137.7476909,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":3.9,"GoogleReviewCount":168},{"ProductId":4214,"Title":"オフィスナッツ　奥浜名湖エリア　東急サニーパーク","Price":8800,"CategoryName":"その他","Latitude":34.7685401,"Longitude":137.6281991,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":4.8,"GoogleReviewCount":6},{"ProductId":4213,"Title":"オフィスナッツ　村櫛エリア　エクシブ前桟橋","Price":8800,"CategoryName":"その他","Latitude":34.7685401,"Longitude":137.6281991,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":4.8,"GoogleReviewCount":6},{"ProductId":4212,"Title":"オフィスナッツ　舘山寺エリア　舘山寺園","Price":8800,"CategoryName":"その他","Latitude":34.7685401,"Longitude":137.6281991,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":4.8,"GoogleReviewCount":6},{"ProductId":4211,"Title":"オフィスナッツ　ウォータードライビング浜名湖","Price":8800,"CategoryName":"その他","Latitude":34.7685401,"Longitude":137.6281991,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":4.8,"GoogleReviewCount":6},{"ProductId":6378,"Title":"国民宿舎奥浜名湖","Price":13000,"CategoryName":"宿泊施設","Latitude":34.8127642,"Longitude":137.6504841,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":3.9,"GoogleReviewCount":695},{"ProductId":13527,"Title":"僕家のらーめん おえかき","Price":1400,"CategoryName":"グルメ","Latitude":34.8313515,"Longitude":137.798227,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":3.9,"GoogleReviewCount":787},{"ProductId":13997,"Title":"炭火バルMabuchi 浜松店","Price":4000,"CategoryName":"グルメ","Latitude":34.7069603,"Longitude":137.7299052,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":3.8,"GoogleReviewCount":307},{"ProductId":4221,"Title":"陽だまりの里 足立柿園","Price":1500,"CategoryName":"その他","Latitude":34.8594253,"Longitude":137.7424774,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":3.9,"GoogleReviewCount":52},{"ProductId":11415,"Title":"くれたけイン浜松駅南口プレミアム","Price":9000,"CategoryName":"宿泊施設","Latitude":34.7033915,"Longitude":137.7364153,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":3.8,"GoogleReviewCount":763},{"ProductId":3181,"Title":"時わすれ開華亭","Price":21000,"CategoryName":"宿泊施設","Latitude":34.7623253,"Longitude":137.6194592,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":3.7,"GoogleReviewCount":722},{"ProductId":15036,"Title":"くれたけイン・セントラル浜松","Price":8000,"CategoryName":"宿泊施設","Latitude":34.7084188,"Longitude":137.7303434,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":3.6,"GoogleReviewCount":586},{"ProductId":15010,"Title":"浜名湖弁天島リゾート THE OCEAN","Price":20000,"CategoryName":"宿泊施設","Latitude":34.6899433,"Longitude":137.602052,"AreaName":"浜松・舘山寺","ProductPrefectureName":"静岡県","GoogleReviewRate":3.6,"GoogleReviewCount":1365}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

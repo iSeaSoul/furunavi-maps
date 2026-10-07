@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>岐阜県郡上市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>岐阜県郡上市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=927">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":13357,"Title":"満天の宿","Price":50000,"CategoryName":"宿泊施設","Latitude":35.9650009,"Longitude":136.8098835,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.5,"GoogleReviewCount":117},{"ProductId":12411,"Title":"THE OAK GUJO","Price":60000,"CategoryName":"宿泊施設","Latitude":35.7482055,"Longitude":136.9573287,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.8,"GoogleReviewCount":24},{"ProductId":12230,"Title":"ホリデイハウス　グリーンガーデン","Price":12000,"CategoryName":"宿泊施設","Latitude":36.0035496,"Longitude":136.903457,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.6,"GoogleReviewCount":145},{"ProductId":13020,"Title":"五郎平","Price":10000,"CategoryName":"宿泊施設","Latitude":35.9477318,"Longitude":136.8824242,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.7,"GoogleReviewCount":73},{"ProductId":12032,"Title":"リゾートペンション四季彩","Price":16000,"CategoryName":"宿泊施設","Latitude":35.9290678,"Longitude":137.0533602,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.7,"GoogleReviewCount":65},{"ProductId":12886,"Title":"宿cafeレンタル 小左エ門","Price":8000,"CategoryName":"宿泊施設","Latitude":35.9491531,"Longitude":136.8795744,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.4,"GoogleReviewCount":149},{"ProductId":12016,"Title":"シェソワ ワカミヤ","Price":18000,"CategoryName":"宿泊施設","Latitude":36.0046336,"Longitude":136.906228,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.6,"GoogleReviewCount":65},{"ProductId":12046,"Title":"みはらや旅館","Price":15000,"CategoryName":"宿泊施設","Latitude":35.7502906,"Longitude":136.9582603,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.4,"GoogleReviewCount":146},{"ProductId":13413,"Title":"リストランテ雀の庵　オーベルジュ","Price":30000,"CategoryName":"宿泊施設","Latitude":35.750071,"Longitude":136.960099,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.4,"GoogleReviewCount":120},{"ProductId":15288,"Title":"グリーンレイク","Price":17000,"CategoryName":"宿泊施設","Latitude":36.0020327,"Longitude":136.9237546,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.6,"GoogleReviewCount":48},{"ProductId":11993,"Title":"民宿 しもだ","Price":10000,"CategoryName":"宿泊施設","Latitude":35.8737509,"Longitude":137.027384,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.5,"GoogleReviewCount":64},{"ProductId":12412,"Title":"料理旅館　金松館","Price":22000,"CategoryName":"宿泊施設","Latitude":35.7772545,"Longitude":136.920589,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.4,"GoogleReviewCount":66},{"ProductId":12925,"Title":"ペンション　ブルーム","Price":13000,"CategoryName":"宿泊施設","Latitude":36.0039354,"Longitude":136.9079977,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.5,"GoogleReviewCount":42},{"ProductId":12044,"Title":"料理旅館 甚右エ門","Price":10000,"CategoryName":"宿泊施設","Latitude":36.0071541,"Longitude":136.9088067,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.5,"GoogleReviewCount":39},{"ProductId":12049,"Title":"お宿ゆのひら","Price":6000,"CategoryName":"宿泊施設","Latitude":35.9529533,"Longitude":136.8802157,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.6,"GoogleReviewCount":26},{"ProductId":12231,"Title":"吉田屋","Price":18000,"CategoryName":"宿泊施設","Latitude":35.7510044,"Longitude":136.9577658,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.2,"GoogleReviewCount":199},{"ProductId":12958,"Title":"レストホテルほづみ","Price":11000,"CategoryName":"宿泊施設","Latitude":35.998873,"Longitude":136.9022868,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.4,"GoogleReviewCount":34},{"ProductId":12012,"Title":"ペンション　ミルキーハウス","Price":12000,"CategoryName":"宿泊施設","Latitude":36.0035348,"Longitude":136.9016033,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.3,"GoogleReviewCount":43},{"ProductId":13739,"Title":"せせらぎ街道の宿たかお【八幡町サイクリングターミナル】","Price":14000,"CategoryName":"宿泊施設","Latitude":35.7845418,"Longitude":137.0096489,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.2,"GoogleReviewCount":92},{"ProductId":14853,"Title":"民宿 上出屋","Price":10000,"CategoryName":"宿泊施設","Latitude":35.8613106,"Longitude":137.1254101,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.5,"GoogleReviewCount":10},{"ProductId":13805,"Title":"カルヴィラいとしろ","Price":10000,"CategoryName":"宿泊施設","Latitude":35.974054,"Longitude":136.7774109,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.1,"GoogleReviewCount":37},{"ProductId":12047,"Title":"Private Camp Field EBOSHI","Price":25000,"CategoryName":"その他","Latitude":35.8646268,"Longitude":136.946326,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":5,"GoogleReviewCount":15},{"ProductId":11991,"Title":"貸別荘 Orkひるがの","Price":18000,"CategoryName":"宿泊施設","Latitude":35.9869122,"Longitude":136.9278879,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.4,"GoogleReviewCount":313},{"ProductId":14127,"Title":"コージュ高鷲","Price":15000,"CategoryName":"宿泊施設","Latitude":35.9578536,"Longitude":136.8938936,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4,"GoogleReviewCount":140},{"ProductId":12033,"Title":"郡上八幡　ホテル積翠園","Price":22000,"CategoryName":"宿泊施設","Latitude":35.7538904,"Longitude":136.9593736,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4,"GoogleReviewCount":369},{"ProductId":13657,"Title":"ＴＡＢＩ-ＹＡＤＯ分水嶺","Price":7000,"CategoryName":"宿泊施設","Latitude":35.997364,"Longitude":136.897323,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.6,"GoogleReviewCount":85},{"ProductId":12897,"Title":"郡上のお宿　奥美濃園","Price":9400,"CategoryName":"宿泊施設","Latitude":35.9271695,"Longitude":136.8300095,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":3.8,"GoogleReviewCount":90},{"ProductId":13003,"Title":"N.A.O.明野高原キャンプ場＆貸別荘","Price":10000,"CategoryName":"宿泊施設","Latitude":35.9300942,"Longitude":136.9000077,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.2,"GoogleReviewCount":405},{"ProductId":13759,"Title":"Art & Hotel 木ノ離","Price":19000,"CategoryName":"宿泊施設","Latitude":35.7476887,"Longitude":136.9572942,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.9,"GoogleReviewCount":17},{"ProductId":12442,"Title":"じょうが渓房","Price":12000,"CategoryName":"宿泊施設","Latitude":35.7499523,"Longitude":136.9575238,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.9,"GoogleReviewCount":12},{"ProductId":15343,"Title":"Alpen Outdoors しろとりフィールド","Price":3600,"CategoryName":"その他","Latitude":35.9675184,"Longitude":136.810117,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":3.9,"GoogleReviewCount":124},{"ProductId":12229,"Title":"和み舎ひるがの","Price":15000,"CategoryName":"宿泊施設","Latitude":36.0034063,"Longitude":136.9046259,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.2,"GoogleReviewCount":76},{"ProductId":12440,"Title":"やなかの大助","Price":12000,"CategoryName":"宿泊施設","Latitude":35.748307,"Longitude":136.957524,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.2,"GoogleReviewCount":17},{"ProductId":12441,"Title":"甚一","Price":12000,"CategoryName":"宿泊施設","Latitude":35.7545761,"Longitude":136.9572921,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":4.5,"GoogleReviewCount":2},{"ProductId":14001,"Title":"ホワイトピアたかす","Price":5200,"CategoryName":"その他","Latitude":35.9558169,"Longitude":136.9348753,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":3.9,"GoogleReviewCount":886},{"ProductId":12000,"Title":"郡上ヴァカンス村ホテル","Price":10000,"CategoryName":"宿泊施設","Latitude":35.9763354,"Longitude":136.9396572,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":3.6,"GoogleReviewCount":281},{"ProductId":13457,"Title":"和良大月の森公園キャンプ場","Price":17000,"CategoryName":"宿泊施設","Latitude":35.7814568,"Longitude":137.0572411,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":3.9,"GoogleReviewCount":16},{"ProductId":12031,"Title":"ひるがの高原コテージパーク四季の郷","Price":10000,"CategoryName":"宿泊施設","Latitude":36.0037784,"Longitude":136.8930469,"AreaName":"下呂・郡上","ProductPrefectureName":"岐阜県","GoogleReviewRate":3.9,"GoogleReviewCount":130}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>長野県茅野市 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>長野県茅野市</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=845">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":6506,"Title":"エクシブ蓼科","Price":27000,"CategoryName":"宿泊施設","Latitude":36.0565926,"Longitude":138.282101,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.4,"GoogleReviewCount":1503},{"ProductId":6421,"Title":"創業大正十五年 蓼科 親湯温泉","Price":22000,"CategoryName":"宿泊施設","Latitude":36.062103,"Longitude":138.273393,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.3,"GoogleReviewCount":1072},{"ProductId":11236,"Title":"オーベルジュ・エスポワール","Price":20000,"CategoryName":"グルメ","Latitude":36.0449501,"Longitude":138.2690614,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.6,"GoogleReviewCount":141},{"ProductId":11471,"Title":"露天風呂のオーベルジュ　つつじとかえで","Price":46000,"CategoryName":"宿泊施設","Latitude":36.064436,"Longitude":138.2892325,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.2,"GoogleReviewCount":92},{"ProductId":6436,"Title":"スープカリー茶房　和月","Price":2000,"CategoryName":"グルメ","Latitude":35.9902517,"Longitude":138.2263894,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.5,"GoogleReviewCount":163},{"ProductId":6432,"Title":"ととバル ギョぎょGyo","Price":5000,"CategoryName":"グルメ","Latitude":35.9925575,"Longitude":138.1547393,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.5,"GoogleReviewCount":133},{"ProductId":6443,"Title":"蓼科東急ホテル","Price":28000,"CategoryName":"宿泊施設","Latitude":36.0683213,"Longitude":138.251272,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.2,"GoogleReviewCount":714},{"ProductId":15079,"Title":"HOTEL de L'ALPAGE（ホテル ドゥ ラルパージュ）","Price":30000,"CategoryName":"宿泊施設","Latitude":36.0560339,"Longitude":138.2616349,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.5,"GoogleReviewCount":93},{"ProductId":6448,"Title":"ca'enne","Price":15000,"CategoryName":"グルメ","Latitude":36.0110202,"Longitude":138.2611082,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.6,"GoogleReviewCount":58},{"ProductId":6433,"Title":"焼肉バル ギュぎゅGyu","Price":5000,"CategoryName":"グルメ","Latitude":35.9880663,"Longitude":138.1900678,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.4,"GoogleReviewCount":121},{"ProductId":6427,"Title":"山の宿 明治温泉　御射鹿の湯","Price":18000,"CategoryName":"宿泊施設","Latitude":36.0375603,"Longitude":138.2962233,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.2,"GoogleReviewCount":449},{"ProductId":6434,"Title":"パンドトナリテ ","Price":1500,"CategoryName":"グルメ","Latitude":36.0218469,"Longitude":138.2077835,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.3,"GoogleReviewCount":122},{"ProductId":13284,"Title":"食事処「山味庵」（たてしな藍内）","Price":10000,"CategoryName":"グルメ","Latitude":36.0351849,"Longitude":138.2659803,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.2,"GoogleReviewCount":274},{"ProductId":6609,"Title":"たてしな藍","Price":38000,"CategoryName":"宿泊施設","Latitude":36.0344824,"Longitude":138.265631,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.2,"GoogleReviewCount":274},{"ProductId":6711,"Title":"ホテルハーヴェスト蓼科アネックス","Price":12000,"CategoryName":"宿泊施設","Latitude":36.0695572,"Longitude":138.2525858,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.2,"GoogleReviewCount":257},{"ProductId":6422,"Title":"和dining　月とすっぽん","Price":3000,"CategoryName":"グルメ","Latitude":35.9895767,"Longitude":138.1533161,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.4,"GoogleReviewCount":61},{"ProductId":13930,"Title":"自家焙煎　澤村珈琲","Price":1000,"CategoryName":"グルメ","Latitude":36.010698,"Longitude":138.261003,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.9,"GoogleReviewCount":12},{"ProductId":6426,"Title":"蔵カフェそよ風","Price":3000,"CategoryName":"グルメ","Latitude":36.0122953,"Longitude":138.200699,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.6,"GoogleReviewCount":24},{"ProductId":6428,"Title":"四季彩の宿 白樺湖畔リトルグリーブ","Price":17000,"CategoryName":"宿泊施設","Latitude":36.1051313,"Longitude":138.2410603,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.3,"GoogleReviewCount":76},{"ProductId":6429,"Title":"柚子の香","Price":3000,"CategoryName":"グルメ","Latitude":35.9897904,"Longitude":138.1606052,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.2,"GoogleReviewCount":162},{"ProductId":6424,"Title":"鉄板懐石 みやざわ","Price":15000,"CategoryName":"グルメ","Latitude":36.0259514,"Longitude":138.1812807,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.9,"GoogleReviewCount":7},{"ProductId":6423,"Title":"豪族の館 大東園","Price":17000,"CategoryName":"宿泊施設","Latitude":36.0358018,"Longitude":138.2670908,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.2,"GoogleReviewCount":106},{"ProductId":6486,"Title":"オーベルジュ リゾートイン ボヌール","Price":18000,"CategoryName":"宿泊施設","Latitude":36.0940789,"Longitude":138.216331,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.3,"GoogleReviewCount":41},{"ProductId":6425,"Title":"森の家花蒔店","Price":4000,"CategoryName":"グルメ","Latitude":36.032662,"Longitude":138.21289,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.3,"GoogleReviewCount":41},{"ProductId":13249,"Title":"ゑびす 一丁目","Price":4000,"CategoryName":"グルメ","Latitude":35.9926413,"Longitude":138.1545457,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.4,"GoogleReviewCount":23},{"ProductId":6435,"Title":"蓼科牛 Ittou 蓼科湖店","Price":5000,"CategoryName":"グルメ","Latitude":36.0517031,"Longitude":138.2566581,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.1,"GoogleReviewCount":339},{"ProductId":8580,"Title":"シャンブルドート　ピステ","Price":18000,"CategoryName":"宿泊施設","Latitude":36.0936101,"Longitude":138.2042786,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.6,"GoogleReviewCount":9},{"ProductId":8501,"Title":"車山高原 ホテルローザンヌ","Price":18000,"CategoryName":"宿泊施設","Latitude":36.0981199,"Longitude":138.2115264,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.2,"GoogleReviewCount":32},{"ProductId":6451,"Title":"大衆割烹 伊織","Price":3000,"CategoryName":"グルメ","Latitude":35.9987803,"Longitude":138.1404905,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.1,"GoogleReviewCount":118},{"ProductId":6500,"Title":"車山高原グランピングコテージ","Price":40000,"CategoryName":"宿泊施設","Latitude":36.0940173,"Longitude":138.214853,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":5,"GoogleReviewCount":1},{"ProductId":13654,"Title":"ラウンジ　「アゼリア」（蓼科東急ホテル内）","Price":3000,"CategoryName":"グルメ","Latitude":36.0680213,"Longitude":138.2515228,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.3,"GoogleReviewCount":3},{"ProductId":6437,"Title":"真砂","Price":4000,"CategoryName":"グルメ","Latitude":35.994779,"Longitude":138.154916,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.1,"GoogleReviewCount":15},{"ProductId":13515,"Title":"フレグラント（蓼科東急ホテル内）","Price":10000,"CategoryName":"グルメ","Latitude":36.0679938,"Longitude":138.2520695,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4,"GoogleReviewCount":62},{"ProductId":7853,"Title":"寛ぎの宿　澤右衛門","Price":24000,"CategoryName":"宿泊施設","Latitude":36.0959052,"Longitude":138.2384711,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4,"GoogleReviewCount":90},{"ProductId":6450,"Title":"手打ち蕎麦切り蓼山亭","Price":1500,"CategoryName":"グルメ","Latitude":36.0105643,"Longitude":138.1750743,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4,"GoogleReviewCount":211},{"ProductId":6442,"Title":"リゾートホテル蓼科","Price":15000,"CategoryName":"宿泊施設","Latitude":36.0526849,"Longitude":138.2611819,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4,"GoogleReviewCount":1665},{"ProductId":6431,"Title":"Beer&Cafe大麦小麦","Price":3000,"CategoryName":"グルメ","Latitude":35.991563,"Longitude":138.181744,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4,"GoogleReviewCount":98},{"ProductId":6420,"Title":"ゆとりろ蓼科ホテルwithDOGS","Price":25000,"CategoryName":"宿泊施設","Latitude":35.9912258,"Longitude":138.2688993,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4,"GoogleReviewCount":526},{"ProductId":6835,"Title":"グラマラスダイニング蓼科","Price":19000,"CategoryName":"宿泊施設","Latitude":36.0684428,"Longitude":138.2539777,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":3.9,"GoogleReviewCount":55},{"ProductId":14810,"Title":"蓼科BASE kitchen，spa&hotel","Price":28000,"CategoryName":"宿泊施設","Latitude":36.05164,"Longitude":138.2571523,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":3.9,"GoogleReviewCount":83},{"ProductId":6438,"Title":"BERG","Price":1000,"CategoryName":"グルメ","Latitude":35.9946716,"Longitude":138.2406845,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":3.6,"GoogleReviewCount":146},{"ProductId":6755,"Title":"クラスベッソ蓼科","Price":44000,"CategoryName":"宿泊施設","Latitude":36.0688387,"Longitude":138.2546769,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":4.5,"GoogleReviewCount":8},{"ProductId":6582,"Title":"八ヶ岳3518 別邸 栗平","Price":44000,"CategoryName":"宿泊施設","Latitude":36.0387473,"Longitude":138.2419482,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":5,"GoogleReviewCount":2},{"ProductId":6581,"Title":"八ヶ岳3518 別邸 白井出","Price":44000,"CategoryName":"宿泊施設","Latitude":36.0190729,"Longitude":138.2699016,"AreaName":"諏訪・蓼科・白樺湖","ProductPrefectureName":"長野県","GoogleReviewRate":5,"GoogleReviewCount":1}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>

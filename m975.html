@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>静岡県河津町 提携店マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0}
+  #panel{position:absolute;z-index:1000;top:10px;left:50px;background:#fff;
+    padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    max-width:min(340px,75vw);font-size:13px}
+  #panel input[type=text]{width:100%;margin:3px 0;font-size:13px;box-sizing:border-box}
+  .cats label{margin-right:8px;white-space:nowrap}
+  .popup a{display:inline-block;margin:3px 6px 0 0}
+</style></head><body>
+<div id="map"></div>
+<div id="panel">
+  <a href="index.html">← 自治体一覧</a>
+  <div><b>静岡県河津町</b> <span id="count"></span></div>
+  <input id="q" type="text" placeholder="店名・エリアで検索">
+  <div class="cats" id="cats"></div>
+  <button id="locate">📍 現在地</button>
+  <a target="_blank" href="https://tp.furunavi.jp/Municipal/PlanSearch?municipalId=975">ふるなびで見る</a>
+  <div style="color:#888;font-size:11px">Data: tp.furunavi.jp (2026-10-07)</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const STORES = [{"ProductId":2528,"Title":"伊豆今井浜東急ホテル","Price":56000,"CategoryName":"宿泊施設","Latitude":34.7511233,"Longitude":139.0031741,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.4,"GoogleReviewCount":1790},{"ProductId":7693,"Title":"桐のかほり咲楽","Price":45000,"CategoryName":"宿泊施設","Latitude":34.753653,"Longitude":139.00545,"AreaName":"富士・沼津・三島","ProductPrefectureName":"静岡県","GoogleReviewRate":4.9,"GoogleReviewCount":304},{"ProductId":2389,"Title":"玉峰館","Price":46000,"CategoryName":"宿泊施設","Latitude":34.756933,"Longitude":138.98275,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.5,"GoogleReviewCount":413},{"ProductId":13406,"Title":"Antica Trattoria Dal Pirata","Price":9000,"CategoryName":"グルメ","Latitude":34.7417952,"Longitude":138.9973996,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.6,"GoogleReviewCount":147},{"ProductId":7682,"Title":"花海月","Price":25000,"CategoryName":"宿泊施設","Latitude":34.7356314,"Longitude":138.9949817,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.8,"GoogleReviewCount":72},{"ProductId":8055,"Title":"花と貸切温泉の宿ビーチサイド100","Price":12000,"CategoryName":"宿泊施設","Latitude":34.7572735,"Longitude":138.9996901,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.6,"GoogleReviewCount":88},{"ProductId":7565,"Title":"やすらぎの温泉宿　青木の坂","Price":18000,"CategoryName":"宿泊施設","Latitude":34.791043,"Longitude":138.939296,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.7,"GoogleReviewCount":43},{"ProductId":5626,"Title":"大人の隠れ宿　花の風","Price":28000,"CategoryName":"宿泊施設","Latitude":34.7573779,"Longitude":138.9995562,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.5,"GoogleReviewCount":75},{"ProductId":9145,"Title":"今井浜温泉旅館　心のどか","Price":17000,"CategoryName":"宿泊施設","Latitude":34.7538231,"Longitude":139.0019367,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.2,"GoogleReviewCount":178},{"ProductId":4158,"Title":"今井浜フライングスクール","Price":6600,"CategoryName":"その他","Latitude":34.7845547,"Longitude":138.9936748,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.9,"GoogleReviewCount":28},{"ProductId":2274,"Title":"かね吉一燈庵","Price":23000,"CategoryName":"宿泊施設","Latitude":34.7523669,"Longitude":139.0029473,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.6,"GoogleReviewCount":296},{"ProductId":10722,"Title":"伊豆さくら亭","Price":2000,"CategoryName":"グルメ","Latitude":34.7578506,"Longitude":139.019455,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4,"GoogleReviewCount":378},{"ProductId":7610,"Title":"Amis Droles【アミ-ドローラ】","Price":20000,"CategoryName":"宿泊施設","Latitude":34.7442,"Longitude":138.984724,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4,"GoogleReviewCount":151},{"ProductId":6293,"Title":"七滝温泉ホテル","Price":15000,"CategoryName":"宿泊施設","Latitude":34.7939311,"Longitude":138.9349339,"AreaName":"伊東","ProductPrefectureName":"静岡県","GoogleReviewRate":4,"GoogleReviewCount":269},{"ProductId":6140,"Title":"VILLA　KAWAZU　－Umi－","Price":75000,"CategoryName":"宿泊施設","Latitude":34.7354591,"Longitude":138.9976101,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":5,"GoogleReviewCount":36},{"ProductId":6294,"Title":"洞窟温泉プライベートキャンプ場グランピング","Price":7000,"CategoryName":"宿泊施設","Latitude":34.7968058,"Longitude":138.9331589,"AreaName":"伊東","ProductPrefectureName":"静岡県","GoogleReviewRate":3.7,"GoogleReviewCount":10},{"ProductId":2262,"Title":"天城温泉 禅の湯","Price":16000,"CategoryName":"宿泊施設","Latitude":34.7794766,"Longitude":138.9471902,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.4,"GoogleReviewCount":376},{"ProductId":6139,"Title":"懐-KAI-","Price":12000,"CategoryName":"宿泊施設","Latitude":34.7596183,"Longitude":138.9818902,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":5,"GoogleReviewCount":8},{"ProductId":13289,"Title":"Tiny Base THE ROCK","Price":13000,"CategoryName":"宿泊施設","Latitude":34.7312275,"Longitude":138.9921085,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.6,"GoogleReviewCount":17},{"ProductId":13286,"Title":"Tiny Base The River TRAILER","Price":13000,"CategoryName":"宿泊施設","Latitude":34.744575,"Longitude":138.9961872,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.6,"GoogleReviewCount":15},{"ProductId":13285,"Title":"Tiny Base The River HOUSE","Price":13000,"CategoryName":"宿泊施設","Latitude":34.744575,"Longitude":138.9961872,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.6,"GoogleReviewCount":15},{"ProductId":13290,"Title":"Tiny Base THE SEA","Price":13000,"CategoryName":"宿泊施設","Latitude":34.7305391,"Longitude":138.9925344,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.6,"GoogleReviewCount":5},{"ProductId":13288,"Title":"Tiny Base The TRee","Price":13000,"CategoryName":"宿泊施設","Latitude":34.7308755,"Longitude":138.9917739,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":5,"GoogleReviewCount":1},{"ProductId":13287,"Title":"Tiny Base The Valley","Price":16000,"CategoryName":"宿泊施設","Latitude":34.7310647,"Longitude":138.9913752,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":5,"GoogleReviewCount":1},{"ProductId":6138,"Title":"KAWAZU NEUE","Price":11000,"CategoryName":"宿泊施設","Latitude":34.7524579,"Longitude":138.9925104,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.3,"GoogleReviewCount":6},{"ProductId":13283,"Title":"Tiny Base The MOUNTAiN SUGI","Price":25000,"CategoryName":"宿泊施設","Latitude":34.7999214,"Longitude":138.9780959,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":0,"GoogleReviewCount":0},{"ProductId":13282,"Title":"Tiny Base The MOUNTAiN Hiiragi","Price":25000,"CategoryName":"宿泊施設","Latitude":34.7999214,"Longitude":138.9780959,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":0,"GoogleReviewCount":0},{"ProductId":2273,"Title":"ペットと泊まれる自家源泉の宿 ホテル四季の蔵","Price":24000,"CategoryName":"宿泊施設","Latitude":34.7491368,"Longitude":138.9820505,"AreaName":"熱川・稲取・東伊豆","ProductPrefectureName":"静岡県","GoogleReviewRate":4.1,"GoogleReviewCount":316}];
+const COLORS = {"宿泊施設":"#1e88e5","グルメ":"#e53935"};
+const map = L.map('map',{preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const cluster = L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:16});
+map.addLayer(cluster);
+const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function popup(s){
+  const gq = encodeURIComponent(s.Title + ' ' + (s.ProductPrefectureName||''));
+  return `<div class="popup"><b>${esc(s.Title)}</b><br>
+   ${esc(s.CategoryName)} ・ ${esc(s.AreaName||'')}<br>
+   目安 ${s.Price ? s.Price.toLocaleString() : '-'} pt
+   ${s.GoogleReviewRate ? ` ・ ★${s.GoogleReviewRate} (${s.GoogleReviewCount})` : ''}<br>
+   <a target="_blank" href="https://tp.furunavi.jp/Plan/Detail?plId=${s.ProductId}">ふるなび詳細</a>
+   <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${gq}">Google Maps</a>
+   <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${s.Latitude},${s.Longitude}">経路</a></div>`;
+}
+STORES.forEach(s=>{
+  s.marker = L.circleMarker([s.Latitude,s.Longitude],{radius:7,weight:1,color:'#fff',
+    fillColor:COLORS[s.CategoryName]||'#43a047',fillOpacity:.9}).bindPopup(()=>popup(s));
+  s.search = (s.Title+' '+(s.AreaName||'')).toLowerCase();
+});
+const cats=[...new Set(STORES.map(s=>s.CategoryName))];
+const catDiv=document.getElementById('cats');
+cats.forEach(c=>{const n=STORES.filter(s=>s.CategoryName===c).length;
+  catDiv.insertAdjacentHTML('beforeend',
+  `<label><input type="checkbox" class="cat" value="${esc(c)}" checked>
+   <span style="color:${COLORS[c]||'#43a047'}">●</span>${esc(c)} (${n})</label>`);});
+function apply(fit){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const on=new Set([...document.querySelectorAll('.cat:checked')].map(x=>x.value));
+  const sel=STORES.filter(s=>on.has(s.CategoryName) && (!q || s.search.includes(q)));
+  cluster.clearLayers(); cluster.addLayers(sel.map(s=>s.marker));
+  document.getElementById('count').textContent=`${sel.length} / ${STORES.length} 件`;
+  if(fit && sel.length) map.fitBounds(L.latLngBounds(sel.map(s=>[s.Latitude,s.Longitude])),{padding:[30,30],maxZoom:15});
+}
+document.getElementById('q').oninput=()=>apply(true);
+catDiv.onchange=()=>apply(false);
+document.getElementById('locate').onclick=()=>map.locate({setView:true,maxZoom:14});
+map.on('locationfound',e=>L.circle(e.latlng,{radius:e.accuracy}).addTo(map));
+map.setView([36.5,137.5],5);
+apply(true);
+</script></body></html>
